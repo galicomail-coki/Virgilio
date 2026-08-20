@@ -6,7 +6,7 @@ async function loadMonuments() {
 
         monuments.forEach(item => {
             const lat = parseFloat(item.Lat || item.lat || item.latitude);
-            const lng = parseFloat(item.Long || item.long || item.longitude);
+const lng = parseFloat(item.Long || item.long || item.longitude || item.Lng || item.lng);
 
             if (!isNaN(lat) && !isNaN(lng)) {
                 const marker = L.marker([lat, lng]).addTo(map);
