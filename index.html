@@ -1,50 +1,46 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Virgilio - Guida Turistica</title>
-  
-  <!-- Leaflet CSS (Mappe OpenStreetMap) -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Progetto Virgilio - Tourist Concierge Lecce</title>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <!-- Header -->
-  <header>
-    <h1>Virgilio</h1>
-    <p>La tua guida tra le meraviglie del Barocco</p>
-  </header>
-
-  <!-- Contenitore della Mappa -->
-  <div id="map"></div>
-
-  <!-- Scheda di Dettaglio Monumento (Modal/Drawer) -->
-  <div id="details-panel" class="hidden">
-    <button id="close-btn">&times;</button>
-    <img id="monument-img" src="" alt="Monumento">
-    <h2 id="monument-title"></h2>
-    <span id="monument-category" class="badge"></span>
-    
-    <div class="section">
-      <h3>Il Segreto di Virgilio</h3>
-      <p id="monument-secret"></p>
+    <!-- Selettore Lingua -->
+    <div id="language-selector">
+        <select id="lang-select">
+            <option value="ita" selected>🇮🇹 Italiano</option>
+            <option value="ing">🇬🇧 English</option>
+            <option value="sp">🇪🇸 Español</option>
+        </select>
     </div>
 
-    <div class="section">
-      <h3>Scopri di più</h3>
-      <p id="monument-desc"></p>
+    <!-- Contenitore Mappa -->
+    <div id="map"></div>
+
+    <!-- Pannello Dettagli -->
+    <div id="details-panel" class="hidden">
+        <button id="close-btn">&times;</button>
+        <img id="monument-img" src="" alt="Immagine Monumento" class="hidden">
+        <h2 id="monument-title"></h2>
+        <span id="monument-category"></span>
+        
+        <button id="speak-btn" class="audio-btn">🔊 Ascolta Audioguida</button>
+
+        <p id="monument-secret"></p>
+        <p id="monument-desc"></p>
+        
+        <div id="video-container" class="hidden">
+            <a id="monument-video" href="" target="_blank" class="video-btn">🎥 Guarda il Video</a>
+        </div>
     </div>
 
-    <div id="video-container" class="section hidden">
-      <h3>Video Guida</h3>
-      <a id="monument-video" href="" target="_blank" class="btn-video">Guarda su YouTube</a>
-    </div>
-  </div>
-
-  <!-- Leaflet JS -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="app.js"></script>
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
