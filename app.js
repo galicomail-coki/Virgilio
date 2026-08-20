@@ -40,7 +40,7 @@ if ("geolocation" in navigator) {
 // 4. Carica e visualizza i monumenti
 async function loadMonuments() {
   try {
-    const response = await fetch('data.json');
+    const response = await fetch('monumenti_lecce.json');
     const monuments = await response.json();
 
     monuments.forEach(item => {
