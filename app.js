@@ -1,6 +1,6 @@
 /**
  * APP.JS - Virgilio Tour Lecce
- * Gestisce la mappa e la traduzione dinamica dei 35 punti di interesse
+ * Gestisce la mappa e la traduzione dinamica dei punti di interesse
  */
 
 // 1. Inizializzazione della mappa
@@ -28,7 +28,7 @@ let markersLayer = L.layerGroup().addTo(map);
 
 // 3. Funzione di caricamento e renderizzazione
 async function caricaMappa() {
-    console.log("Inizio caricamento mappa...");
+    console.log("Aggiornamento mappa in corso...");
     try {
         const response = await fetch('./monumenti_lecce.json');
         if (!response.ok) throw new Error("File JSON non trovato!");
@@ -37,28 +37,31 @@ async function caricaMappa() {
         const langSelect = document.getElementById('lang-select');
         const currentLang = langSelect ? langSelect.value : 'ita';
         
-        console.log("Lingua attiva:", currentLang);
+        console.log("Lingua attiva selezionata:", currentLang);
+        
+        // Chiude eventuali popup aperti prima di pulire i layer
+        map.closePopup();
         markersLayer.clearLayers();
 
         luoghi.forEach(luogo => {
             const lat = parseFloat(luogo.lat);
             const lng = parseFloat(luogo.lng);
 
-            if (!isNaN(lat) && !isNaN(lng)) {
-                // Selezione testi
+            if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
                 let cat, seg, scopri, labelSeg, labelScopri, btnTxt;
 
+                // Selezione testi in base alla lingua
                 if (currentLang === 'ing') {
-                    cat = luogo["Category Eng"];
-                    seg = luogo["Secret Eng"];
-                    scopri = luogo["Discover More Eng"];
+                    cat = luogo["Category Eng"] || luogo["Categoria Ita"];
+                    seg = luogo["Secret Eng"] || luogo["Il Segreto di Virgilio (Leggenda/Curiosità)"];
+                    scopri = luogo["Discover More Eng"] || luogo["Scopri di più"];
                     labelSeg = "Virgil's Secret:";
                     labelScopri = "Discover more:";
                     btnTxt = "Watch Video";
                 } else if (currentLang === 'sp') {
-                    cat = luogo["Category Sp"];
-                    seg = luogo["Secret Sp"];
-                    scopri = luogo["Discover More Sp"];
+                    cat = luogo["Category Sp"] || luogo["Categoria Ita"];
+                    seg = luogo["Secret Sp"] || luogo["Il Segreto di Virgilio (Leggenda/Curiosità)"];
+                    scopri = luogo["Discover More Sp"] || luogo["Scopri di più"];
                     labelSeg = "El secreto de Virgilio:";
                     labelScopri = "Saber más:";
                     btnTxt = "Ver Video";
@@ -71,41 +74,61 @@ async function caricaMappa() {
                     btnTxt = "Guarda il Video";
                 }
 
+                // Nome del luogo
+                const nomeLuogo = luogo["Nome Luogo"] || "";
+
                 // Crea Marker
-                const isAppartamento = luogo["Nome Luogo"].toLowerCase().includes("appartamento");
+                const isAppartamento = nomeLuogo.toLowerCase().includes("appartamento");
                 const marker = L.marker([lat, lng], { icon: isAppartamento ? redIcon : blueIcon });
 
                 const popupContent = `
-                    <div style="font-family:sans-serif; max-width:200px;">
-                        <h3 style="margin:0; font-size:14px; color:#e74c3c;">${luogo["Nome Luogo"]}</h3>
-                        <p style="font-size:10px; color:#777;">${cat}</p>
-                        <div style="background:#fff9e6; padding:5px; margin-bottom:5px;">
-                            <p style="margin:0; font-size:11px; font-weight:bold;">${labelSeg}</p>
-                            <p style="margin:0; font-size:11px;">${seg}</p>
-                        </div>
-                        <p style="margin:0; font-size:11px;"><b>${labelScopri}</b> ${scopri}</p>
-                        ${luogo.Video ? `<a href="${luogo.Video}" target="_blank" style="display:block; margin-top:5px; color:#e74c3c;">▶ ${btnTxt}</a>` : ''}
+                    <div style="font-family:sans-serif; max-width:220px; max-height:260px; overflow-y:auto;">
+                        <h3 style="margin:0 0 5px 0; font-size:14px; color:#e74c3c; border-bottom:1px solid #ddd; padding-bottom:3px;">${nomeLuogo}</h3>
+                        <p style="font-size:10px; font-weight:bold; color:#777; text-transform:uppercase; margin:0 0 5px 0;">${cat}</p>
+                        
+                        ${seg ? `
+                            <div style="background:#fff9e6; border-left:3px solid #f39c12; padding:5px; margin-bottom:5px;">
+                                <p style="margin:0; font-size:10px; font-weight:bold; color:#d35400;">💡 ${labelSeg}</p>
+                                <p style="margin:2px 0 0 0; font-size:11px; color:#333;">${seg}</p>
+                            </div>
+                        ` : ''}
+
+                        ${scopri ? `
+                            <div style="margin-bottom:5px;">
+                                <p style="margin:0; font-size:10px; font-weight:bold; color:#2980b9;">📖 ${labelScopri}</p>
+                                <p style="margin:2px 0 0 0; font-size:11px; color:#444;">${scopri}</p>
+                            </div>
+                        ` : ''}
+
+                        ${luogo.Video ? `
+                            <div style="text-align:center; margin-top:8px;">
+                                <a href="${luogo.Video}" target="_blank" style="display:inline-block; background:#e74c3c; color:#fff; text-decoration:none; padding:4px 8px; border-radius:3px; font-size:11px; font-weight:bold;">▶ ${btnTxt}</a>
+                            </div>
+                        ` : ''}
                     </div>
                 `;
+                
                 marker.bindPopup(popupContent);
                 markersLayer.addLayer(marker);
             }
         });
-        console.log("Mappa caricata con successo.");
+        console.log("Mappa aggiornata con la nuova lingua.");
     } catch (e) {
-        console.error("Errore critico:", e);
+        console.error("Errore critico durante il caricamento:", e);
     }
 }
 
-// 4. Inizializzazione Eventi
+// 4. Inizializzazione Eventi al caricamento della pagina
 document.addEventListener('DOMContentLoaded', () => {
     caricaMappa();
     
     const langSelect = document.getElementById('lang-select');
     if (langSelect) {
         langSelect.addEventListener('change', () => {
-            console.log("Cambiamento lingua rilevato");
+            console.log("Evento change intercettato sul menu lingua");
             caricaMappa();
         });
+    } else {
+        console.error("Attenzione: elemento 'lang-select' non trovato nel DOM!");
     }
 });
