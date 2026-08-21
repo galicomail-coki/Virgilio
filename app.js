@@ -37,11 +37,20 @@ if ("geolocation" in navigator) {
 }
 
 // 3. Caricamento Dati
+const redIcon = L.icon({
+    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41]
+});
+
 async function loadMonuments() {
     try {
         const response = await fetch('monumenti_lecce.json');
         if (!response.ok) throw new Error("File JSON non trovato");
-        
+
         const monuments = await response.json();
 
         monuments.forEach(item => {
@@ -49,13 +58,26 @@ async function loadMonuments() {
             const lng = parseFloat(item.Long || item.long || item.longitude || item.Lng || item.lng);
 
             if (!isNaN(lat) && !isNaN(lng)) {
-                const marker = L.marker([lat, lng]).addTo(map);
+                let markerOptions = {};
+                if (item["Nome Luogo"] === "A casa di Francesca" || item["Categoria Ita"] === "Appartamento") {
+                    markerOptions = { icon: redIcon };
+                }
+
+                const marker = L.marker([lat, lng], markerOptions).addTo(map);
+
                 marker.on('click', () => {
                     selectedMonument = item;
                     showDetails(selectedMonument);
                 });
             }
         });
+    } catch (err) {
+        console.error("Errore nel caricamento del file dei monumenti:", err);
+    }
+}
+        });
+    }
+});
     } catch (err) {
         console.error("Errore nel caricamento del file dei monumenti:", err);
     }
