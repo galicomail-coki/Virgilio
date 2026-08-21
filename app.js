@@ -37,16 +37,16 @@ async function caricaMappa() {
             throw new Error(`Errore HTTP! Stato: ${response.status}`);
         }
         const luoghi = await response.json();
-        
-        // Legge la lingua selezionata dall'elemento HTML (es. <select id="languageSelect">)
-        const langSelect = document.getElementById('languageSelect');
+
+        // Legge la lingua selezionata dall'elemento HTML (usa 'lang-select')
+        const langSelect = document.getElementById('lang-select');
         const currentLang = langSelect ? langSelect.value : 'ita';
 
         // Pulisce i marker precedenti prima di ricaricarli
         markersLayer.clearLayers();
 
         luoghi.forEach(luogo => {
-            // Estrazione coordinate (supporta "Coordinate GPS", "Lat"/"Long" o "latitudine"/"longitudine")
+            // Estrazione coordinate
             let lat = luogo["Lat"] || luogo["latitudine"] || luogo["lat"];
             let lng = luogo["Long"] || luogo["longitudine"] || luogo["lng"];
 
@@ -61,21 +61,33 @@ async function caricaMappa() {
 
             if (!isNaN(lat) && !isNaN(lng)) {
                 // Selezione dinamica dei campi in base alla lingua corrente
-                let nome, categoria, segreto, scopriDiPiu, btnVideoText;
+                let nome, categoria, segreto, scopriDiPiu, btnVideoText, labelSegreto, labelScopri;
 
-                if (currentLang === 'eng') {
-                    nome = luogo["Name"] || luogo["Nome Luogo"] || luogo["nome"];
+                if (currentLang === 'ing') {
+                    nome = luogo["Name"] || luogo["Name Eng"] || luogo["nome"] || "";
                     categoria = luogo["Category Eng"] || luogo["Categoria Ita"] || "";
                     segreto = luogo["Secret Eng"] || luogo["Il Segreto di Virgilio (Leggenda/Curiosità)"] || "";
                     scopriDiPiu = luogo["Discover More Eng"] || luogo["Scopri di più"] || "";
                     btnVideoText = "Watch Video";
+                    labelSegreto = "Virgil's Secret:";
+                    labelScopri = "Discover more:";
+                } else if (currentLang === 'sp') {
+                    nome = luogo["Name Sp"] || luogo["nome"] || "";
+                    categoria = luogo["Category Sp"] || luogo["Categoria Ita"] || "";
+                    segreto = luogo["Secret Sp"] || luogo["Il Segreto di Virgilio (Leggenda/Curiosità)"] || "";
+                    scopriDiPiu = luogo["Discover More Sp"] || luogo["Scopri di più"] || "";
+                    btnVideoText = "Ver Video";
+                    labelSegreto = "El secreto de Virgilio:";
+                    labelScopri = "Saber más:";
                 } else {
                     // Default Italiano
-                    nome = luogo["Nome Luogo"] || luogo["nome"] || luogo["Luogo d'interesse"];
+                    nome = luogo["Nome Luogo"] || luogo["nome"] || luogo["Luogo d'interesse"] || "";
                     categoria = luogo["Categoria Ita"] || luogo["categoria_ita"] || "";
                     segreto = luogo["Il Segreto di Virgilio (Leggenda/Curiosità)"] || luogo["segreto"] || "";
                     scopriDiPiu = luogo["Scopri di più"] || luogo["scopri_di_piu"] || "";
                     btnVideoText = "Guarda il Video";
+                    labelSegreto = "Il Segreto di Virgilio:";
+                    labelScopri = "Scopri di più:";
                 }
 
                 const videoUrl = luogo["Video"] || luogo["videoUrl"] || "";
@@ -94,21 +106,21 @@ async function caricaMappa() {
                         
                         ${segreto ? `
                             <div style="background-color: #fff9e6; border-left: 3px solid #f39c12; padding: 6px; margin-bottom: 8px;">
-                                <p style="margin: 0; font-size: 11px; font-weight: bold; color: #d35400;">💡 ${currentLang === 'eng' ? "Virgil's Secret:" : "Il Segreto di Virgilio:"}</p>
+                                <p style="margin: 0; font-size: 11px; font-weight: bold; color: #d35400;">💡 ${labelSegreto}</p>
                                 <p style="margin: 3px 0 0 0; font-size: 12px; line-height: 1.35; color: #333;">${segreto}</p>
                             </div>
                         ` : ''}
 
                         ${scopriDiPiu ? `
                             <div style="margin-bottom: 8px;">
-                                <p style="margin: 0 0 3px 0; font-size: 11px; font-weight: bold; color: #2980b9;">📖 ${currentLang === 'eng' ? "Discover more:" : "Scopri di più:"}</p>
+                                <p style="margin: 0 0 3px 0; font-size: 11px; font-weight: bold; color: #2980b9;">📖 ${labelScopri}</p>
                                 <p style="margin: 0; font-size: 12px; line-height: 1.35; color: #444;">${scopriDiPiu}</p>
                             </div>
                         ` : ''}
 
                         ${videoUrl ? `
                             <div style="margin-top: 10px; text-align: center;">
-                                <a href="${videoUrl}" target="_blank" style="display: inline-block; background-color: #e74c3c; color: #ffffff; text-decoration: none; padding: 5px 10px; border-radius: 4px; font-size: 12px;">▶ ${btnVideoText}</a>
+                                <a href="${videoUrl}" target="_blank" style="display: inline-block; background-color: #e74c3c; color: #ffffff; text-decoration: none; padding: 5px 10px; border-radius: 4px; font-size: 12px; font-weight: bold;">▶ ${btnVideoText}</a>
                             </div>
                         ` : ''}
                     </div>
@@ -128,7 +140,7 @@ caricaMappa();
 
 // Event listener per intercettare il cambio di lingua dal menu a tendina
 document.addEventListener('DOMContentLoaded', () => {
-    const langSelect = document.getElementById('languageSelect');
+    const langSelect = document.getElementById('lang-select');
     if (langSelect) {
         langSelect.addEventListener('change', () => {
             caricaMappa();
