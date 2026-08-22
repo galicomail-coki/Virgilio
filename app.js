@@ -1,5 +1,5 @@
 /**
- * APP.JS - Virgilio Tour Lecce (Debug Definitivo + Icone Personalizzate)
+ * APP.JS - Virgilio Tour Lecce (Gestione Icone Corretta)
  */
 
 const map = L.map('map').setView([40.3547, 18.1728], 15);
@@ -23,49 +23,30 @@ const redIcon = L.icon({
 });
 
 async function caricaMappa() {
-    console.log("--> CARICAMENTO JSON IN CORSO...");
     try {
         const response = await fetch('./monumenti_lecce.json');
-        if (!response.ok) throw new Error("File JSON non trovato o errore HTTP: " + response.status);
+        if (!response.ok) throw new Error("File JSON non trovato");
         
         const luoghi = await response.json();
-        console.log("--> JSON LETTO CON SUCCESSO. Ecco i dati:", luoghi);
 
-        if (!Array.isArray(luoghi)) {
-            console.error("ATTENZIONE: Il JSON non è un array (una lista) valida!");
-            return;
-        }
-
-        luoghi.forEach((luogo, index) => {
-            console.log(`Elemento ${index}:`, luogo);
-
-            // Gestisce sia maiuscole che minuscole per le coordinate
-            const latVal = luogo.Lat !== undefined ? luogo.Lat : luogo.lat;
-            const lngVal = luogo.Long !== undefined ? luogo.Long : (luogo.long !== undefined ? luogo.long : luogo.lng);
-
-            const lat = parseFloat(latVal);
-            const lng = parseFloat(lngVal);
-
-            console.log(`-> Coordinate estratte: Lat=${lat}, Lng=${lng}`);
+        luoghi.forEach((luogo) => {
+            const lat = parseFloat(luogo.Lat !== undefined ? luogo.Lat : luogo.lat);
+            const lng = parseFloat(luogo.Long !== undefined ? luogo.Long : luogo.long);
 
             if (!isNaN(lat) && !isNaN(lng)) {
-                const nomeLuogo = luogo["Nome Luogo"] || "Punto di interesse";
+                const nomeLuogo = luogo["Nome Luogo"] || "";
+                const nomeLower = nomeLuogo.toLowerCase();
                 
-                // Imposta l'icona rossa per l'appartamento, blu per il resto
-                const isAppartamento = nomeLuogo.toLowerCase().includes("appartamento");
+                // Riconosce l'appartamento se nel nome c'è "appartamento", "francesca" o "casa"
+                const isAppartamento = nomeLower.includes("appartamento") || nomeLower.includes("francesca") || nomeLower.includes("casa");
                 const markerIcon = isAppartamento ? redIcon : blueIcon;
 
-                // Aggiunge il pin alla mappa con l'icona corretta
                 const marker = L.marker([lat, lng], { icon: markerIcon }).addTo(map);
                 marker.bindPopup(`<b>${nomeLuogo}</b>`);
-                console.log(`--> Pin aggiunto con successo per: ${nomeLuogo} (${isAppartamento ? 'Rosso' : 'Blu'})`);
-            } else {
-                console.warn(`--> ERRORE: Coordinate non valide per l'elemento ${index} (${luogo["Nome Luogo"]})`);
             }
         });
-
     } catch (e) {
-        console.error("--> ERRORE CRITICO NEL FETCH:", e);
+        console.error("Errore critico:", e);
     }
 }
 
