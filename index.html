@@ -1,14 +1,8 @@
 <!DOCTYPE html>
 <html lang="it">
-
 <head>
-
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0, viewport-fit=cover"
-    >
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
     <title>A casa di Francesca - Lecce</title>
 
@@ -19,22 +13,14 @@
     >
 
     <link rel="stylesheet" href="style.css">
-
 </head>
 
 <body>
 
-    <!-- =====================================================
-         MAPPA
-         ===================================================== -->
-
+    <!-- MAPPA -->
     <div id="map"></div>
 
-
-    <!-- =====================================================
-         INTESTAZIONE
-         ===================================================== -->
-
+    <!-- INTESTAZIONE -->
     <div id="app-header">
 
         <div class="header-title">
@@ -52,57 +38,31 @@
     </div>
 
 
-    <!-- =====================================================
-         SELETTORE LINGUA
-         ===================================================== -->
+    <!-- SELETTORE LINGUA -->
+    <div id="language-selector">
 
-    <div
-        id="language-selector"
-        aria-label="Selezione lingua"
-    >
-
-        <button
-            class="language-btn language-it active"
-            data-lang="it"
-            type="button"
-        >
-            🇮🇹 <span>Italiano</span>
+        <button class="language-btn active" data-lang="it">
+            🇮🇹 IT
         </button>
 
-        <button
-            class="language-btn language-en"
-            data-lang="en"
-            type="button"
-        >
-            🇬🇧 <span>English</span>
+        <button class="language-btn" data-lang="en">
+            🇬🇧 EN
         </button>
 
-        <button
-            class="language-btn language-es"
-            data-lang="es"
-            type="button"
-        >
-            🇪🇸 <span>Español</span>
+        <button class="language-btn" data-lang="es">
+            🇪🇸 ES
         </button>
 
     </div>
 
 
-    <!-- =====================================================
-         CONTROLLI AUDIO
-         ===================================================== -->
-
-    <div
-        id="audio-controls"
-        aria-label="Controlli audio"
-    >
+    <!-- CONTROLLI AUDIO -->
+    <div id="audio-controls">
 
         <button
             id="audio-play"
             class="audio-control"
-            type="button"
             title="Ascolta"
-            aria-label="Ascolta"
         >
             ▶
         </button>
@@ -110,9 +70,7 @@
         <button
             id="audio-pause"
             class="audio-control"
-            type="button"
             title="Pausa"
-            aria-label="Pausa"
         >
             ⏸
         </button>
@@ -120,9 +78,7 @@
         <button
             id="audio-repeat"
             class="audio-control"
-            type="button"
             title="Ripeti"
-            aria-label="Ripeti"
         >
             ↻
         </button>
@@ -130,46 +86,28 @@
     </div>
 
 
-    <!-- =====================================================
-         CURSORE DEL PERCORSO
-         ===================================================== -->
-
+    <!-- CURSORE -->
     <div id="route-cursor"></div>
 
 
-    <!-- =====================================================
-         POPUP MONUMENTO
-         ===================================================== -->
-
-    <div
-        id="place-modal"
-        class="modal hidden"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="place-name"
-    >
+    <!-- POPUP -->
+    <div id="place-modal" class="modal hidden">
 
         <div class="modal-content">
 
             <button
                 id="close-modal"
                 class="close-btn"
-                type="button"
                 aria-label="Chiudi"
             >
                 ×
             </button>
 
 
-            <!-- NOME -->
-
             <h2 id="place-name"></h2>
 
 
-            <!-- =================================================
-                 SEGRETO DI VIRGILIO
-                 ================================================= -->
-
+            <!-- SEGRETO -->
             <section class="place-section">
 
                 <h3 id="secret-title">
@@ -184,28 +122,35 @@
             </section>
 
 
-            <!-- =================================================
-                 SCOPRI DI PIÙ
-                 ================================================= -->
+            <!-- SCOPRI DI PIÙ -->
+            <section
+                id="more-section"
+                class="place-section expandable-section"
+            >
 
-            <section class="place-section">
-
-                <h3 id="more-title">
+                <h3
+                    id="more-title"
+                    class="expand-title"
+                >
                     Scopri di più
                 </h3>
 
                 <div
                     id="place-more"
-                    class="place-text"
+                    class="place-text more-text collapsed"
                 ></div>
+
+                <div
+                    id="more-hint"
+                    class="more-hint"
+                >
+                    Clicca per leggere tutto
+                </div>
 
             </section>
 
 
-            <!-- =================================================
-                 AUDIO
-                 ================================================= -->
-
+            <!-- AUDIO -->
             <section
                 id="speech-section"
                 class="place-section"
@@ -222,10 +167,7 @@
             </section>
 
 
-            <!-- =================================================
-                 VIDEO
-                 ================================================= -->
-
+            <!-- VIDEO -->
             <section
                 id="video-section"
                 class="place-section"
@@ -234,7 +176,6 @@
                 <button
                     id="video-btn"
                     class="video-btn"
-                    type="button"
                 >
                     ▶ Guarda il video
                 </button>
@@ -246,22 +187,12 @@
     </div>
 
 
-    <!-- =====================================================
-         LEAFLET
-         ===================================================== -->
-
     <script
         src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         crossorigin=""
     ></script>
 
-
-    <!-- =====================================================
-         APPLICAZIONE
-         ===================================================== -->
-
     <script src="app.js"></script>
 
 </body>
-
 </html>
