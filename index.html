@@ -1,61 +1,97 @@
 <!DOCTYPE html>
 <html lang="it">
+
 <head>
+
     <meta charset="UTF-8">
 
     <meta
         name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+        content="width=device-width, initial-scale=1.0"
     >
 
     <title>Virgilio - Lecce</title>
 
-    <!-- Leaflet -->
+
+    <!-- =====================================================
+         LEAFLET CSS
+    ====================================================== -->
+
     <link
         rel="stylesheet"
         href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-        integrity="sha256-p4NxAoJBhIINfZz4H9Qf8s5w1Y8Z7z7v3X2p3j2c5zE="
         crossorigin=""
     >
 
-    <!-- Stili dell'app -->
-    <link rel="stylesheet" href="styl.css">
+
+    <!-- =====================================================
+         CSS DELL'APP
+    ====================================================== -->
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+
 </head>
+
 
 <body>
 
-    <!-- =========================================================
-         CONTENITORE PRINCIPALE
-    ========================================================== -->
-
     <main id="app">
 
-        <!-- MAPPA -->
+
+        <!-- =================================================
+             MAPPA
+        ================================================== -->
+
         <div id="map"></div>
 
 
-        <!-- =====================================================
-             PANNELLO SUPERIORE
-        ====================================================== -->
+        <!-- =================================================
+             INTESTAZIONE
+        ================================================== -->
 
         <div id="top-panel">
 
             <div class="app-title">
-                <span class="app-title-main">VIRGILIO</span>
-                <span class="app-title-sub">Lecce</span>
+
+                <span class="app-title-main">
+                    VIRGILIO
+                </span>
+
+                <span class="app-title-sub">
+                    Lecce
+                </span>
+
             </div>
 
+
             <!-- SELETTORE LINGUA -->
+
             <div class="language-box">
 
-                <label for="language-select" class="sr-only">
+                <label
+                    for="language-select"
+                    class="sr-only"
+                >
                     Lingua
                 </label>
 
                 <select id="language-select">
-                    <option value="it">🇮🇹 Italiano</option>
-                    <option value="en">🇬🇧 English</option>
-                    <option value="es">🇪🇸 Español</option>
+
+                    <option value="it">
+                        🇮🇹 Italiano
+                    </option>
+
+                    <option value="en">
+                        🇬🇧 English
+                    </option>
+
+                    <option value="es">
+                        🇪🇸 Español
+                    </option>
+
                 </select>
 
             </div>
@@ -63,16 +99,17 @@
         </div>
 
 
-        <!-- =====================================================
-             CONTROLLI DEL CURSORE
-        ====================================================== -->
+        <!-- =================================================
+             CONTROLLI CURSORE
+        ================================================== -->
 
         <div id="cursor-controls">
 
             <button
                 id="start-button"
                 type="button"
-                title="Avvia il percorso"
+                title="Avvia"
+                aria-label="Avvia percorso"
             >
                 ▶
             </button>
@@ -81,6 +118,7 @@
                 id="pause-button"
                 type="button"
                 title="Pausa"
+                aria-label="Metti in pausa"
             >
                 ⏸
             </button>
@@ -88,7 +126,8 @@
             <button
                 id="reset-button"
                 type="button"
-                title="Ricominciar percorso"
+                title="Ricomincia"
+                aria-label="Ricomincia percorso"
             >
                 ↺
             </button>
@@ -96,9 +135,9 @@
         </div>
 
 
-        <!-- =====================================================
-             INDICATORE PERCORSO
-        ====================================================== -->
+        <!-- =================================================
+             STATO PERCORSO
+        ================================================== -->
 
         <div id="route-status">
 
@@ -107,17 +146,17 @@
             </div>
 
             <div id="route-status-position">
-                0 / 35
+                1 / 35
             </div>
 
         </div>
 
 
-        <!-- =====================================================
+        <!-- =================================================
              SCHEDA MONUMENTO
-        ====================================================== -->
+        ================================================== -->
 
-        <div
+        <section
             id="monument-panel"
             class="monument-panel hidden"
             aria-hidden="true"
@@ -127,24 +166,29 @@
                 id="close-panel"
                 class="close-panel"
                 type="button"
-                aria-label="Chiudi"
+                aria-label="Chiudi scheda"
             >
                 ×
             </button>
 
 
             <!-- NOME -->
+
             <h2 id="monument-name"></h2>
 
 
             <!-- CATEGORIA -->
+
             <div
                 id="monument-category"
                 class="monument-category"
             ></div>
 
 
-            <!-- SEGRETO -->
+            <!-- =================================================
+                 SEGRETO DI VIRGILIO
+            ================================================== -->
+
             <section class="info-section">
 
                 <h3 id="secret-title">
@@ -156,7 +200,10 @@
             </section>
 
 
-            <!-- SCOPRI DI PIÙ -->
+            <!-- =================================================
+                 SCOPRI DI PIÙ
+            ================================================== -->
+
             <section class="info-section">
 
                 <h3 id="more-title">
@@ -168,7 +215,10 @@
             </section>
 
 
-            <!-- AUDIO -->
+            <!-- =================================================
+                 AUDIO
+            ================================================== -->
+
             <section class="media-section">
 
                 <h3 id="audio-title">
@@ -180,7 +230,10 @@
             </section>
 
 
-            <!-- VIDEO -->
+            <!-- =================================================
+                 VIDEO
+            ================================================== -->
+
             <section
                 id="video-section"
                 class="media-section"
@@ -194,12 +247,12 @@
 
             </section>
 
-        </div>
+        </section>
 
 
-        <!-- =====================================================
-             MESSAGGIO DI CARICAMENTO
-        ====================================================== -->
+        <!-- =================================================
+             SCHERMATA CARICAMENTO
+        ================================================== -->
 
         <div id="loading-screen">
 
@@ -207,7 +260,7 @@
 
                 <div class="loading-spinner"></div>
 
-                <p id="loading-text">
+                <p>
                     Caricamento di Virgilio...
                 </p>
 
@@ -218,22 +271,22 @@
     </main>
 
 
-    <!-- =========================================================
+    <!-- =====================================================
          LEAFLET JAVASCRIPT
-    ========================================================== -->
+    ====================================================== -->
 
     <script
         src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
         crossorigin=""
     ></script>
 
 
-    <!-- =========================================================
+    <!-- =====================================================
          JAVASCRIPT DELL'APP
-    ========================================================== -->
+    ====================================================== -->
 
     <script src="app.js"></script>
 
 </body>
+
 </html>
