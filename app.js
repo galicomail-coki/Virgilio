@@ -1,31 +1,19 @@
 /* =========================================================
-   A CASA DI FRANCESCA
-   IL SEGRETO DI VIRGILIO
+   A CASA DI FRANCESCA - IL SEGRETO DI VIRGILIO
    ========================================================= */
 
 const DATA_URL = "monumenti_lecce.json";
 
-
-/* =========================================================
-   VARIABILI GLOBALI
-   ========================================================= */
-
 let monuments = [];
-
 let currentLanguage = "it";
-
 let currentMonument = null;
-
 let speechUtterance = null;
 
 let map;
 
 let routeCursor;
-
 let routeIndex = 0;
-
 let routeAnimation = null;
-
 let routePlaying = false;
 
 
@@ -36,110 +24,74 @@ let routePlaying = false;
 const translations = {
 
     it: {
-
-        secret:
-            "Il Segreto di Virgilio",
-
-        more:
-            "Scopri di più",
-
-        audio:
-            "Ascolta",
-
-        audioDescription:
-            "Premi ▶ per ascoltare il testo.",
-
-        video:
-            "▶ Guarda il video"
-
+        secret: "Il Segreto di Virgilio",
+        more: "Scopri di più",
+        moreHint: "Clicca per leggere tutto",
+        audio: "Ascolta",
+        audioDescription: "Premi ▶ per ascoltare il testo.",
+        video: "▶ Guarda il video"
     },
-
 
     en: {
-
-        secret:
-            "Virgil's Secret",
-
-        more:
-            "Find out more",
-
-        audio:
-            "Listen",
-
-        audioDescription:
-            "Press ▶ to listen to the text.",
-
-        video:
-            "▶ Watch the video"
-
+        secret: "Virgil's Secret",
+        more: "Find out more",
+        moreHint: "Click to read the full text",
+        audio: "Listen",
+        audioDescription: "Press ▶ to listen to the text.",
+        video: "▶ Watch the video"
     },
 
-
     es: {
-
-        secret:
-            "El secreto de Virgilio",
-
-        more:
-            "Descubre más",
-
-        audio:
-            "Escuchar",
-
-        audioDescription:
-            "Pulsa ▶ para escuchar el texto.",
-
-        video:
-            "▶ Ver el vídeo"
-
+        secret: "El secreto de Virgilio",
+        more: "Descubre más",
+        moreHint: "Haz clic para leer el texto completo",
+        audio: "Escuchar",
+        audioDescription: "Pulsa ▶ para escuchar el texto.",
+        video: "▶ Ver el vídeo"
     }
 
 };
 
 
 /* =========================================================
-   INIZIALIZZAZIONE MAPPA
+   MAPPA
    ========================================================= */
 
 function initializeMap() {
 
-    /*
-     * La mappa viene centrata su
-     * A casa di Francesca.
-     */
-
     map = L.map("map", {
 
-        zoomControl: true,
+        zoomControl: false,
 
         attributionControl: true
 
     }).setView(
-
         [
             40.356820,
             18.171628
         ],
-
         16
-
     );
 
 
     L.tileLayer(
-
         "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-
         {
-
             maxZoom: 20,
 
             attribution:
                 "&copy; OpenStreetMap contributors"
-
         }
-
     ).addTo(map);
+
+
+    /*
+     * CONTROLLI ZOOM
+     * Posizionati in basso a sinistra.
+     */
+    L.control.zoom({
+        position: "bottomleft"
+    }).addTo(map);
 
 }
 
@@ -150,12 +102,6 @@ function initializeMap() {
 
 function createMarkerIcon(isFrancesca) {
 
-    /*
-     * A casa di Francesca = ROSSO
-     *
-     * Tutti gli altri = BLU
-     */
-
     const color =
         isFrancesca
             ? "#d71920"
@@ -164,8 +110,7 @@ function createMarkerIcon(isFrancesca) {
 
     return L.divIcon({
 
-        className:
-            "custom-marker",
+        className: "custom-marker",
 
         html: `
 
@@ -208,14 +153,11 @@ function createMarkerIcon(isFrancesca) {
 
         `,
 
-        iconSize:
-            [24, 24],
+        iconSize: [24, 24],
 
-        iconAnchor:
-            [12, 24],
+        iconAnchor: [12, 24],
 
-        popupAnchor:
-            [0, -24]
+        popupAnchor: [0, -24]
 
     });
 
@@ -256,29 +198,7 @@ async function loadMonuments() {
         }
 
 
-        /*
-         * Controllo informativo.
-         * L'app è progettata per 35 monumenti.
-         */
-
-        console.log(
-            `Monumenti caricati: ${monuments.length}`
-        );
-
-
         addMonumentsToMap();
-
-
-        /*
-         * Posizioniamo inizialmente
-         * il cursore sul primo monumento.
-         */
-
-        if (monuments.length > 0) {
-
-            moveCursorToMonument(0);
-
-        }
 
 
     } catch (error) {
@@ -298,13 +218,12 @@ async function loadMonuments() {
 
 
 /* =========================================================
-   AGGIUNTA MONUMENTI ALLA MAPPA
+   AGGIUNTA MONUMENTI
    ========================================================= */
 
 function addMonumentsToMap() {
 
     monuments.forEach(
-
         (monument) => {
 
             const name =
@@ -348,41 +267,27 @@ function addMonumentsToMap() {
 
             const marker =
                 L.marker(
-
                     [lat, lng],
-
                     {
-
                         icon:
                             createMarkerIcon(
                                 isFrancesca
                             )
-
                     }
-
                 ).addTo(map);
 
 
             marker.bindTooltip(
-
                 name,
-
                 {
-
                     direction: "top",
-
-                    offset:
-                        [0, -20]
-
+                    offset: [0, -20]
                 }
-
             );
 
 
             marker.on(
-
                 "click",
-
                 function () {
 
                     openMonument(
@@ -391,18 +296,16 @@ function addMonumentsToMap() {
                     );
 
                 }
-
             );
 
         }
-
     );
 
 }
 
 
 /* =========================================================
-   CAMPI JSON IN BASE ALLA LINGUA
+   CAMPI JSON
    ========================================================= */
 
 function getFieldsForLanguage() {
@@ -451,64 +354,85 @@ function getFieldsForLanguage() {
 
 
 /* =========================================================
-   RECUPERA IL SEGRETO
+   TESTO COMPLETO SCOPRI DI PIÙ
    ========================================================= */
 
-function getSecretText(monument) {
+function getMoreText() {
 
-    const fields =
-        getFieldsForLanguage();
-
-
-    let text =
-        monument[fields.secret];
-
-
-    /*
-     * Nel JSON di Porta Napoli il campo contiene
-     * accidentalmente "TheSecret" senza spazio.
-     *
-     * Gestiamo entrambi i casi.
-     */
-
-    if (
-        !text &&
-        currentLanguage === "en"
-    ) {
-
-        text =
-            monument[
-                "TheSecret of Virgil (Legend/Curiosity)"
-            ];
-
+    if (!currentMonument) {
+        return "";
     }
 
-
-    return text || "";
-
-}
-
-
-/* =========================================================
-   RECUPERA SCOPRI DI PIÙ
-   ========================================================= */
-
-function getMoreText(monument) {
 
     const fields =
         getFieldsForLanguage();
 
 
     return (
-        monument[fields.more] ||
-        ""
+        currentMonument[
+            fields.more
+        ] || ""
     );
 
 }
 
 
 /* =========================================================
-   APERTURA SCHEDA
+   ANTEPRIMA TESTO
+   ========================================================= */
+
+function createPreview(text) {
+
+    if (!text) {
+        return "";
+    }
+
+
+    /*
+     * Mostra circa 300 caratteri.
+     * Il testo completo rimane comunque
+     * disponibile cliccando "Scopri di più".
+     */
+
+    const maxLength = 300;
+
+
+    if (text.length <= maxLength) {
+
+        return text;
+
+    }
+
+
+    let preview =
+        text.substring(
+            0,
+            maxLength
+        );
+
+
+    const lastSpace =
+        preview.lastIndexOf(" ");
+
+
+    if (lastSpace > 0) {
+
+        preview =
+            preview.substring(
+                0,
+                lastSpace
+            );
+
+    }
+
+
+    return preview + "...";
+
+}
+
+
+/* =========================================================
+   APERTURA POPUP
    ========================================================= */
 
 function openMonument(
@@ -520,27 +444,33 @@ function openMonument(
         monument;
 
 
+    const fields =
+        getFieldsForLanguage();
+
+
     const labels =
         translations[
             currentLanguage
         ];
 
 
-    /* -----------------------------------------------------
-       NOME
-       ----------------------------------------------------- */
+    /*
+     * NOME
+     */
 
     document
         .getElementById(
             "place-name"
         )
         .textContent =
-            monument["Nome Luogo"] || "";
+            monument[
+                "Nome Luogo"
+            ] || "";
 
 
-    /* -----------------------------------------------------
-       SEGRETO
-       ----------------------------------------------------- */
+    /*
+     * SEGRETO
+     */
 
     document
         .getElementById(
@@ -555,14 +485,20 @@ function openMonument(
             "place-secret"
         )
         .textContent =
-            getSecretText(
-                monument
-            );
+            monument[
+                fields.secret
+            ] || "";
 
 
-    /* -----------------------------------------------------
-       SCOPRI DI PIÙ
-       ----------------------------------------------------- */
+    /*
+     * SCOPRI DI PIÙ
+     */
+
+    const moreText =
+        monument[
+            fields.more
+        ] || "";
+
 
     document
         .getElementById(
@@ -577,14 +513,48 @@ function openMonument(
             "place-more"
         )
         .textContent =
-            getMoreText(
-                monument
+            createPreview(
+                moreText
             );
 
 
-    /* -----------------------------------------------------
-       AUDIO
-       ----------------------------------------------------- */
+    document
+        .getElementById(
+            "more-hint"
+        )
+        .textContent =
+            moreText.length > 300
+                ? labels.moreHint
+                : "";
+
+
+    /*
+     * IMPORTANTE:
+     * Ogni volta che si apre un monumento
+     * il testo parte chiuso.
+     */
+
+    document
+        .getElementById(
+            "place-more"
+        )
+        .classList.add(
+            "collapsed"
+        );
+
+
+    document
+        .getElementById(
+            "more-section"
+        )
+        .classList.remove(
+            "expanded"
+        );
+
+
+    /*
+     * AUDIO
+     */
 
     document
         .getElementById(
@@ -602,22 +572,19 @@ function openMonument(
             labels.audioDescription;
 
 
-    /* -----------------------------------------------------
-       VIDEO
-       ----------------------------------------------------- */
+    /*
+     * VIDEO
+     */
 
     setupVideo(
-
         monument["Video"],
-
         labels
-
     );
 
 
-    /* -----------------------------------------------------
-       APRI MODALE
-       ----------------------------------------------------- */
+    /*
+     * APERTURA
+     */
 
     document
         .getElementById(
@@ -628,32 +595,132 @@ function openMonument(
         );
 
 
-    /*
-     * Interrompe eventuale audio precedente.
-     */
-
     stopSpeech();
 
 }
 
 
 /* =========================================================
-   LINGUA AUDIO
+   ESPANSIONE SCOPRI DI PIÙ
+   ========================================================= */
+
+function toggleMoreText() {
+
+    if (!currentMonument) {
+        return;
+    }
+
+
+    const fields =
+        getFieldsForLanguage();
+
+
+    const fullText =
+        currentMonument[
+            fields.more
+        ] || "";
+
+
+    const textElement =
+        document.getElementById(
+            "place-more"
+        );
+
+
+    const section =
+        document.getElementById(
+            "more-section"
+        );
+
+
+    const hint =
+        document.getElementById(
+            "more-hint"
+        );
+
+
+    if (
+        section.classList.contains(
+            "expanded"
+        )
+    ) {
+
+        /*
+         * Torna all'anteprima.
+         */
+
+        textElement.textContent =
+            createPreview(
+                fullText
+            );
+
+
+        textElement.classList.add(
+            "collapsed"
+        );
+
+
+        section.classList.remove(
+            "expanded"
+        );
+
+
+        hint.textContent =
+            translations[
+                currentLanguage
+            ].moreHint;
+
+
+    } else {
+
+        /*
+         * Mostra tutto.
+         */
+
+        textElement.textContent =
+            fullText;
+
+
+        textElement.classList.remove(
+            "collapsed"
+        );
+
+
+        section.classList.add(
+            "expanded"
+        );
+
+
+        hint.textContent = "";
+
+    }
+
+}
+
+
+document
+    .getElementById(
+        "more-section"
+    )
+    .addEventListener(
+        "click",
+        toggleMoreText
+    );
+
+
+/* =========================================================
+   SINTESI VOCALE
    ========================================================= */
 
 function getSpeechLanguage() {
 
     if (currentLanguage === "en") {
-
         return "en-US";
-
     }
 
 
     if (currentLanguage === "es") {
-
         return "es-ES";
-
     }
 
 
@@ -663,7 +730,7 @@ function getSpeechLanguage() {
 
 
 /* =========================================================
-   TROVA VOCE MIGLIORE
+   TROVA VOCE
    ========================================================= */
 
 function getBestVoice(language) {
@@ -674,37 +741,22 @@ function getBestVoice(language) {
 
 
     if (!voices.length) {
-
         return null;
-
     }
 
 
-    /*
-     * Prima cerchiamo corrispondenza
-     * esatta.
-     */
-
     let voice =
         voices.find(
-
             v =>
                 v.lang.toLowerCase() ===
                 language.toLowerCase()
-
         );
 
 
     if (voice) {
-
         return voice;
-
     }
 
-
-    /*
-     * Poi cerchiamo la stessa lingua.
-     */
 
     const prefix =
         language
@@ -714,13 +766,11 @@ function getBestVoice(language) {
 
     voice =
         voices.find(
-
             v =>
                 v.lang
                     .substring(0, 2)
                     .toLowerCase() ===
                 prefix
-
         );
 
 
@@ -730,7 +780,7 @@ function getBestVoice(language) {
 
 
 /* =========================================================
-   AUDIO: LEGGE SCOPRI DI PIÙ
+   LEGGI TESTO COMPLETO
    ========================================================= */
 
 function speakMoreText() {
@@ -750,28 +800,25 @@ function speakMoreText() {
 
 
     if (!currentMonument) {
-
         return;
-
     }
 
 
     /*
      * IMPORTANTE:
-     * l'audio utilizza esattamente
-     * il testo di "Scopri di più".
+     * qui prendiamo SEMPRE il testo originale
+     * completo di "Scopri di più".
+     *
+     * NON prendiamo il testo dell'anteprima
+     * mostrato nel popup.
      */
 
     const text =
-        getMoreText(
-            currentMonument
-        );
+        getMoreText();
 
 
     if (!text.trim()) {
-
         return;
-
     }
 
 
@@ -827,7 +874,7 @@ function speakMoreText() {
 
 
 /* =========================================================
-   PAUSA AUDIO
+   PAUSA
    ========================================================= */
 
 function pauseSpeech() {
@@ -845,7 +892,7 @@ function pauseSpeech() {
 
 
 /* =========================================================
-   RIPRENDI AUDIO
+   RIPRENDI
    ========================================================= */
 
 function resumeSpeech() {
@@ -863,7 +910,7 @@ function resumeSpeech() {
 
 
 /* =========================================================
-   STOP AUDIO
+   STOP
    ========================================================= */
 
 function stopSpeech() {
@@ -880,15 +927,13 @@ function stopSpeech() {
 
 
 /* =========================================================
-   RIPETI AUDIO
+   RIPETI
    ========================================================= */
 
 function repeatSpeech() {
 
     if (!currentMonument) {
-
         return;
-
     }
 
 
@@ -898,7 +943,7 @@ function repeatSpeech() {
 
 
 /* =========================================================
-   PLAY
+   PLAY AUDIO
    ========================================================= */
 
 document
@@ -906,14 +951,11 @@ document
         "audio-play"
     )
     .addEventListener(
-
         "click",
-
         function () {
 
             if (
-                window.speechSynthesis
-                    .paused
+                window.speechSynthesis.paused
             ) {
 
                 resumeSpeech();
@@ -925,12 +967,11 @@ document
             }
 
         }
-
     );
 
 
 /* =========================================================
-   PAUSA
+   PAUSA AUDIO
    ========================================================= */
 
 document
@@ -938,20 +979,17 @@ document
         "audio-pause"
     )
     .addEventListener(
-
         "click",
-
         function () {
 
             pauseSpeech();
 
         }
-
     );
 
 
 /* =========================================================
-   RIPETI
+   RIPETI AUDIO
    ========================================================= */
 
 document
@@ -959,15 +997,12 @@ document
         "audio-repeat"
     )
     .addEventListener(
-
         "click",
-
         function () {
 
             repeatSpeech();
 
         }
-
     );
 
 
@@ -1019,13 +1054,9 @@ function setupVideo(
         function () {
 
             window.open(
-
                 videoUrl.trim(),
-
                 "_blank",
-
                 "noopener,noreferrer"
-
             );
 
         };
@@ -1034,7 +1065,7 @@ function setupVideo(
 
 
 /* =========================================================
-   CHIUDI SCHEDA
+   CHIUDI POPUP
    ========================================================= */
 
 function closeMonument() {
@@ -1062,26 +1093,17 @@ document
         "close-modal"
     )
     .addEventListener(
-
         "click",
-
         closeMonument
-
     );
 
-
-/* =========================================================
-   CLICK FUORI DALLA SCHEDA
-   ========================================================= */
 
 document
     .getElementById(
         "place-modal"
     )
     .addEventListener(
-
         "click",
-
         function (event) {
 
             if (
@@ -1093,7 +1115,6 @@ document
             }
 
         }
-
     );
 
 
@@ -1106,35 +1127,26 @@ document
         ".language-btn"
     )
     .forEach(
-
         button => {
 
             button.addEventListener(
-
                 "click",
-
                 function () {
 
                     currentLanguage =
                         this.dataset.lang;
 
 
-                    /*
-                     * Aggiorna pulsante attivo.
-                     */
-
                     document
                         .querySelectorAll(
                             ".language-btn"
                         )
                         .forEach(
-
                             btn =>
                                 btn.classList
                                     .remove(
                                         "active"
                                     )
-
                         );
 
 
@@ -1142,11 +1154,6 @@ document
                         "active"
                     );
 
-
-                    /*
-                     * Se una scheda è aperta,
-                     * la aggiorniamo immediatamente.
-                     */
 
                     if (
                         currentMonument
@@ -1167,11 +1174,9 @@ document
                     }
 
                 }
-
             );
 
         }
-
     );
 
 
@@ -1189,18 +1194,13 @@ function initializeRouteCursor() {
 }
 
 
-/* =========================================================
-   SPOSTA CURSORE
-   ========================================================= */
-
 function moveCursorToMonument(
     index
 ) {
 
     if (
         !routeCursor ||
-        !monuments[index] ||
-        !map
+        !monuments[index]
     ) {
 
         return;
@@ -1224,16 +1224,6 @@ function moveCursorToMonument(
         );
 
 
-    if (
-        Number.isNaN(lat) ||
-        Number.isNaN(lng)
-    ) {
-
-        return;
-
-    }
-
-
     const point =
         map.latLngToContainerPoint(
             [lat, lng]
@@ -1254,16 +1244,10 @@ function moveCursorToMonument(
 }
 
 
-/* =========================================================
-   AVVIO PERCORSO
-   ========================================================= */
-
 function playRoute() {
 
     if (!monuments.length) {
-
         return;
-
     }
 
 
@@ -1283,13 +1267,10 @@ function playRoute() {
 
     routeAnimation =
         setInterval(
-
             function () {
 
                 if (!routePlaying) {
-
                     return;
-
                 }
 
 
@@ -1311,17 +1292,11 @@ function playRoute() {
                 );
 
             },
-
             3000
-
         );
 
 }
 
-
-/* =========================================================
-   PAUSA PERCORSO
-   ========================================================= */
 
 function pauseRoute() {
 
@@ -1335,10 +1310,6 @@ function pauseRoute() {
 
 }
 
-
-/* =========================================================
-   RIAVVIA PERCORSO
-   ========================================================= */
 
 function restartRoute() {
 
@@ -1355,10 +1326,6 @@ function restartRoute() {
 
 }
 
-
-/* =========================================================
-   AGGIORNA POSIZIONE CURSORE
-   ========================================================= */
 
 function updateCursorPosition() {
 
@@ -1377,46 +1344,32 @@ function updateCursorPosition() {
 }
 
 
-/* =========================================================
-   AGGIORNAMENTO CURSORE QUANDO MAPPA SI MUOVE
-   ========================================================= */
-
 window.addEventListener(
-
     "resize",
-
     updateCursorPosition
-
 );
 
 
 /* =========================================================
-   AVVIO APPLICAZIONE
+   AVVIO
    ========================================================= */
 
 document.addEventListener(
-
     "DOMContentLoaded",
-
     function () {
 
         initializeMap();
-
 
         initializeRouteCursor();
 
 
         map.on(
-
             "move zoom",
-
             updateCursorPosition
-
         );
 
 
         loadMonuments();
 
     }
-
 );
