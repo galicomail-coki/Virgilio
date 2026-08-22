@@ -1,8 +1,14 @@
 /* =========================================================
-   A CASA DI FRANCESCA - IL SEGRETO DI VIRGILIO
+   A CASA DI FRANCESCA
+   IL SEGRETO DI VIRGILIO
    ========================================================= */
 
 const DATA_URL = "monumenti_lecce.json";
+
+
+/* =========================================================
+   VARIABILI GLOBALI
+   ========================================================= */
 
 let monuments = [];
 
@@ -12,6 +18,16 @@ let currentMonument = null;
 
 let speechUtterance = null;
 
+let map;
+
+let routeCursor;
+
+let routeIndex = 0;
+
+let routeAnimation = null;
+
+let routePlaying = false;
+
 
 /* =========================================================
    TRADUZIONI INTERFACCIA
@@ -20,6 +36,7 @@ let speechUtterance = null;
 const translations = {
 
     it: {
+
         secret:
             "Il Segreto di Virgilio",
 
@@ -34,9 +51,12 @@ const translations = {
 
         video:
             "▶ Guarda il video"
+
     },
 
+
     en: {
+
         secret:
             "Virgil's Secret",
 
@@ -51,9 +71,12 @@ const translations = {
 
         video:
             "▶ Watch the video"
+
     },
 
+
     es: {
+
         secret:
             "El secreto de Virgilio",
 
@@ -68,25 +91,21 @@ const translations = {
 
         video:
             "▶ Ver el vídeo"
+
     }
 
 };
 
 
 /* =========================================================
-   MAPPA
+   INIZIALIZZAZIONE MAPPA
    ========================================================= */
-
-let map;
 
 function initializeMap() {
 
     /*
-     * Centro iniziale:
-     * A casa di Francesca
-     *
-     * 40.356820
-     * 18.171628
+     * La mappa viene centrata su
+     * A casa di Francesca.
      */
 
     map = L.map("map", {
@@ -112,10 +131,12 @@ function initializeMap() {
         "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
 
         {
+
             maxZoom: 20,
 
             attribution:
                 "&copy; OpenStreetMap contributors"
+
         }
 
     ).addTo(map);
@@ -128,6 +149,12 @@ function initializeMap() {
    ========================================================= */
 
 function createMarkerIcon(isFrancesca) {
+
+    /*
+     * A casa di Francesca = ROSSO
+     *
+     * Tutti gli altri = BLU
+     */
 
     const color =
         isFrancesca
@@ -229,7 +256,29 @@ async function loadMonuments() {
         }
 
 
+        /*
+         * Controllo informativo.
+         * L'app è progettata per 35 monumenti.
+         */
+
+        console.log(
+            `Monumenti caricati: ${monuments.length}`
+        );
+
+
         addMonumentsToMap();
+
+
+        /*
+         * Posizioniamo inizialmente
+         * il cursore sul primo monumento.
+         */
+
+        if (monuments.length > 0) {
+
+            moveCursorToMonument(0);
+
+        }
 
 
     } catch (error) {
@@ -249,12 +298,13 @@ async function loadMonuments() {
 
 
 /* =========================================================
-   AGGIUNTA DEI 35 MONUMENTI
+   AGGIUNTA MONUMENTI ALLA MAPPA
    ========================================================= */
 
 function addMonumentsToMap() {
 
     monuments.forEach(
+
         (monument) => {
 
             const name =
@@ -302,10 +352,12 @@ function addMonumentsToMap() {
                     [lat, lng],
 
                     {
+
                         icon:
                             createMarkerIcon(
                                 isFrancesca
                             )
+
                     }
 
                 ).addTo(map);
@@ -316,10 +368,12 @@ function addMonumentsToMap() {
                 name,
 
                 {
+
                     direction: "top",
 
                     offset:
                         [0, -20]
+
                 }
 
             );
@@ -341,13 +395,14 @@ function addMonumentsToMap() {
             );
 
         }
+
     );
 
 }
 
 
 /* =========================================================
-   CAMPI DEL JSON IN BASE ALLA LINGUA
+   CAMPI JSON IN BASE ALLA LINGUA
    ========================================================= */
 
 function getFieldsForLanguage() {
@@ -396,7 +451,64 @@ function getFieldsForLanguage() {
 
 
 /* =========================================================
-   APERTURA POPUP
+   RECUPERA IL SEGRETO
+   ========================================================= */
+
+function getSecretText(monument) {
+
+    const fields =
+        getFieldsForLanguage();
+
+
+    let text =
+        monument[fields.secret];
+
+
+    /*
+     * Nel JSON di Porta Napoli il campo contiene
+     * accidentalmente "TheSecret" senza spazio.
+     *
+     * Gestiamo entrambi i casi.
+     */
+
+    if (
+        !text &&
+        currentLanguage === "en"
+    ) {
+
+        text =
+            monument[
+                "TheSecret of Virgil (Legend/Curiosity)"
+            ];
+
+    }
+
+
+    return text || "";
+
+}
+
+
+/* =========================================================
+   RECUPERA SCOPRI DI PIÙ
+   ========================================================= */
+
+function getMoreText(monument) {
+
+    const fields =
+        getFieldsForLanguage();
+
+
+    return (
+        monument[fields.more] ||
+        ""
+    );
+
+}
+
+
+/* =========================================================
+   APERTURA SCHEDA
    ========================================================= */
 
 function openMonument(
@@ -408,19 +520,15 @@ function openMonument(
         monument;
 
 
-    const fields =
-        getFieldsForLanguage();
-
-
     const labels =
         translations[
             currentLanguage
         ];
 
 
-    /*
-     * NOME
-     */
+    /* -----------------------------------------------------
+       NOME
+       ----------------------------------------------------- */
 
     document
         .getElementById(
@@ -430,9 +538,9 @@ function openMonument(
             monument["Nome Luogo"] || "";
 
 
-    /*
-     * SEGRETO
-     */
+    /* -----------------------------------------------------
+       SEGRETO
+       ----------------------------------------------------- */
 
     document
         .getElementById(
@@ -447,14 +555,14 @@ function openMonument(
             "place-secret"
         )
         .textContent =
-            monument[
-                fields.secret
-            ] || "";
+            getSecretText(
+                monument
+            );
 
 
-    /*
-     * SCOPRI DI PIÙ
-     */
+    /* -----------------------------------------------------
+       SCOPRI DI PIÙ
+       ----------------------------------------------------- */
 
     document
         .getElementById(
@@ -469,17 +577,14 @@ function openMonument(
             "place-more"
         )
         .textContent =
-            monument[
-                fields.more
-            ] || "";
+            getMoreText(
+                monument
+            );
 
 
-    /*
-     * AUDIO
-     *
-     * L'audio utilizza il testo di
-     * "Scopri di più".
-     */
+    /* -----------------------------------------------------
+       AUDIO
+       ----------------------------------------------------- */
 
     document
         .getElementById(
@@ -497,19 +602,22 @@ function openMonument(
             labels.audioDescription;
 
 
-    /*
-     * VIDEO
-     */
+    /* -----------------------------------------------------
+       VIDEO
+       ----------------------------------------------------- */
 
     setupVideo(
+
         monument["Video"],
+
         labels
+
     );
 
 
-    /*
-     * APERTURA MODALE
-     */
+    /* -----------------------------------------------------
+       APRI MODALE
+       ----------------------------------------------------- */
 
     document
         .getElementById(
@@ -521,8 +629,7 @@ function openMonument(
 
 
     /*
-     * Quando si apre un nuovo monumento
-     * interrompiamo eventuale lettura precedente.
+     * Interrompe eventuale audio precedente.
      */
 
     stopSpeech();
@@ -531,7 +638,7 @@ function openMonument(
 
 
 /* =========================================================
-   SINTESI VOCALE
+   LINGUA AUDIO
    ========================================================= */
 
 function getSpeechLanguage() {
@@ -556,7 +663,7 @@ function getSpeechLanguage() {
 
 
 /* =========================================================
-   TROVA VOCE
+   TROVA VOCE MIGLIORE
    ========================================================= */
 
 function getBestVoice(language) {
@@ -574,15 +681,17 @@ function getBestVoice(language) {
 
 
     /*
-     * Prima cerchiamo una voce
-     * esattamente corrispondente.
+     * Prima cerchiamo corrispondenza
+     * esatta.
      */
 
     let voice =
         voices.find(
+
             v =>
                 v.lang.toLowerCase() ===
                 language.toLowerCase()
+
         );
 
 
@@ -594,8 +703,7 @@ function getBestVoice(language) {
 
 
     /*
-     * Poi cerchiamo almeno
-     * la stessa lingua.
+     * Poi cerchiamo la stessa lingua.
      */
 
     const prefix =
@@ -606,11 +714,13 @@ function getBestVoice(language) {
 
     voice =
         voices.find(
+
             v =>
                 v.lang
                     .substring(0, 2)
                     .toLowerCase() ===
                 prefix
+
         );
 
 
@@ -620,7 +730,7 @@ function getBestVoice(language) {
 
 
 /* =========================================================
-   LEGGI SCOPRI DI PIÙ
+   AUDIO: LEGGE SCOPRI DI PIÙ
    ========================================================= */
 
 function speakMoreText() {
@@ -646,14 +756,16 @@ function speakMoreText() {
     }
 
 
-    const fields =
-        getFieldsForLanguage();
-
+    /*
+     * IMPORTANTE:
+     * l'audio utilizza esattamente
+     * il testo di "Scopri di più".
+     */
 
     const text =
-        currentMonument[
-            fields.more
-        ] || "";
+        getMoreText(
+            currentMonument
+        );
 
 
     if (!text.trim()) {
@@ -715,7 +827,7 @@ function speakMoreText() {
 
 
 /* =========================================================
-   PAUSA
+   PAUSA AUDIO
    ========================================================= */
 
 function pauseSpeech() {
@@ -733,7 +845,7 @@ function pauseSpeech() {
 
 
 /* =========================================================
-   RIPRENDI
+   RIPRENDI AUDIO
    ========================================================= */
 
 function resumeSpeech() {
@@ -751,7 +863,7 @@ function resumeSpeech() {
 
 
 /* =========================================================
-   STOP
+   STOP AUDIO
    ========================================================= */
 
 function stopSpeech() {
@@ -768,7 +880,7 @@ function stopSpeech() {
 
 
 /* =========================================================
-   RIPETI
+   RIPETI AUDIO
    ========================================================= */
 
 function repeatSpeech() {
@@ -779,13 +891,14 @@ function repeatSpeech() {
 
     }
 
+
     speakMoreText();
 
 }
 
 
 /* =========================================================
-   PULSANTE PLAY
+   PLAY
    ========================================================= */
 
 document
@@ -793,7 +906,9 @@ document
         "audio-play"
     )
     .addEventListener(
+
         "click",
+
         function () {
 
             if (
@@ -810,11 +925,12 @@ document
             }
 
         }
+
     );
 
 
 /* =========================================================
-   PULSANTE PAUSA
+   PAUSA
    ========================================================= */
 
 document
@@ -822,17 +938,20 @@ document
         "audio-pause"
     )
     .addEventListener(
+
         "click",
+
         function () {
 
             pauseSpeech();
 
         }
+
     );
 
 
 /* =========================================================
-   PULSANTE RIPETI
+   RIPETI
    ========================================================= */
 
 document
@@ -840,12 +959,15 @@ document
         "audio-repeat"
     )
     .addEventListener(
+
         "click",
+
         function () {
 
             repeatSpeech();
 
         }
+
     );
 
 
@@ -897,9 +1019,13 @@ function setupVideo(
         function () {
 
             window.open(
+
                 videoUrl.trim(),
+
                 "_blank",
+
                 "noopener,noreferrer"
+
             );
 
         };
@@ -908,12 +1034,13 @@ function setupVideo(
 
 
 /* =========================================================
-   CHIUDI POPUP
+   CHIUDI SCHEDA
    ========================================================= */
 
 function closeMonument() {
 
     stopSpeech();
+
 
     currentMonument =
         null;
@@ -935,27 +1062,30 @@ document
         "close-modal"
     )
     .addEventListener(
+
         "click",
+
         closeMonument
+
     );
 
 
-/*
- * Cliccando fuori dalla scheda
- * la scheda viene chiusa.
- */
+/* =========================================================
+   CLICK FUORI DALLA SCHEDA
+   ========================================================= */
 
 document
     .getElementById(
         "place-modal"
     )
     .addEventListener(
+
         "click",
+
         function (event) {
 
             if (
-                event.target ===
-                this
+                event.target === this
             ) {
 
                 closeMonument();
@@ -963,6 +1093,7 @@ document
             }
 
         }
+
     );
 
 
@@ -975,10 +1106,13 @@ document
         ".language-btn"
     )
     .forEach(
+
         button => {
 
             button.addEventListener(
+
                 "click",
+
                 function () {
 
                     currentLanguage =
@@ -986,7 +1120,7 @@ document
 
 
                     /*
-                     * Aggiorna pulsanti.
+                     * Aggiorna pulsante attivo.
                      */
 
                     document
@@ -994,11 +1128,13 @@ document
                             ".language-btn"
                         )
                         .forEach(
+
                             btn =>
                                 btn.classList
                                     .remove(
                                         "active"
                                     )
+
                         );
 
 
@@ -1008,9 +1144,8 @@ document
 
 
                     /*
-                     * Se la scheda è aperta,
-                     * aggiorna immediatamente
-                     * il contenuto.
+                     * Se una scheda è aperta,
+                     * la aggiorniamo immediatamente.
                      */
 
                     if (
@@ -1032,24 +1167,17 @@ document
                     }
 
                 }
+
             );
 
         }
+
     );
 
 
 /* =========================================================
    CURSORE DEL PERCORSO
    ========================================================= */
-
-let routeCursor;
-
-let routeIndex = 0;
-
-let routeAnimation = null;
-
-let routePlaying = false;
-
 
 function initializeRouteCursor() {
 
@@ -1061,13 +1189,18 @@ function initializeRouteCursor() {
 }
 
 
+/* =========================================================
+   SPOSTA CURSORE
+   ========================================================= */
+
 function moveCursorToMonument(
     index
 ) {
 
     if (
         !routeCursor ||
-        !monuments[index]
+        !monuments[index] ||
+        !map
     ) {
 
         return;
@@ -1091,6 +1224,16 @@ function moveCursorToMonument(
         );
 
 
+    if (
+        Number.isNaN(lat) ||
+        Number.isNaN(lng)
+    ) {
+
+        return;
+
+    }
+
+
     const point =
         map.latLngToContainerPoint(
             [lat, lng]
@@ -1110,6 +1253,10 @@ function moveCursorToMonument(
 
 }
 
+
+/* =========================================================
+   AVVIO PERCORSO
+   ========================================================= */
 
 function playRoute() {
 
@@ -1136,6 +1283,7 @@ function playRoute() {
 
     routeAnimation =
         setInterval(
+
             function () {
 
                 if (!routePlaying) {
@@ -1165,10 +1313,15 @@ function playRoute() {
             },
 
             3000
+
         );
 
 }
 
+
+/* =========================================================
+   PAUSA PERCORSO
+   ========================================================= */
 
 function pauseRoute() {
 
@@ -1182,6 +1335,10 @@ function pauseRoute() {
 
 }
 
+
+/* =========================================================
+   RIAVVIA PERCORSO
+   ========================================================= */
 
 function restartRoute() {
 
@@ -1200,7 +1357,7 @@ function restartRoute() {
 
 
 /* =========================================================
-   AGGIORNAMENTO CURSORE
+   AGGIORNA POSIZIONE CURSORE
    ========================================================= */
 
 function updateCursorPosition() {
@@ -1221,44 +1378,45 @@ function updateCursorPosition() {
 
 
 /* =========================================================
-   EVENTI CURSORE
+   AGGIORNAMENTO CURSORE QUANDO MAPPA SI MUOVE
    ========================================================= */
 
-document
-    .getElementById(
-        "audio-play"
-    );
-
-
-/*
- * Il cursore segue la mappa
- * quando viene spostata.
- */
-
 window.addEventListener(
+
     "resize",
+
     updateCursorPosition
+
 );
 
 
 /* =========================================================
-   AVVIO
+   AVVIO APPLICAZIONE
    ========================================================= */
 
 document.addEventListener(
+
     "DOMContentLoaded",
+
     function () {
 
         initializeMap();
 
+
         initializeRouteCursor();
 
+
         map.on(
+
             "move zoom",
+
             updateCursorPosition
+
         );
+
 
         loadMonuments();
 
     }
+
 );
