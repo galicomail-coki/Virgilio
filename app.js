@@ -1,1253 +1,637 @@
-/* ============================================================
-   VIRGILIO - LECCE
-   APP.JS
+/* =========================================================
+   A CASA DI FRANCESCA - IL SEGRETO DI VIRGILIO
+   ========================================================= */
 
-   VERSIONE COMPLETA
+const DATA_URL = "monumenti_lecce.json";
 
-   - 35 monumenti caricati dal JSON
-   - mappa centrata su A casa di Francesca
-   - pin blu
-   - A casa di Francesca pin rosso
-   - italiano / inglese / spagnolo
-   - scheda monumento
-   - Segreto di Virgilio
-   - Scopri di più
-   - audio
-   - video
-   - cursore Virgilio
-   - avvio / pausa / ricomincia
-============================================================ */
-
-
-/* ============================================================
-   CONFIGURAZIONE
-============================================================ */
-
-const CONFIG = {
-
-    /* File dati */
-    jsonFile: "./monumenti_lecce.json",
-
-
-    /* ========================================================
-       CENTRO INIZIALE DELLA MAPPA
-
-       A casa di Francesca
-       Coordinate prese direttamente dal JSON.
-    ======================================================== */
-
-    mapCenter: [
-        40.356820,
-        18.171628
-    ],
-
-
-    /* Zoom iniziale */
-    defaultZoom: 16,
-
-
-    /* Monumenti previsti */
-    expectedMonuments: 35,
-
-
-    /* Velocità del cursore */
-    cursorSpeed: 0.00022,
-
-
-    /* Pausa quando raggiunge un monumento */
-    pauseAtMonument: 1800,
-
-
-    /* ========================================================
-       LINGUE
-    ======================================================== */
-
-    languages: {
-
-        it: {
-
-            code: "it",
-
-            categoryKey:
-                "Categoria Ita",
-
-            secretKey:
-                "Il Segreto di Virgilio (Leggenda/Curiosità)",
-
-            moreKey:
-                "Scopri di più",
-
-            secretTitle:
-                "Il Segreto di Virgilio",
-
-            moreTitle:
-                "Scopri di più",
-
-            audioTitle:
-                "Ascolta",
-
-            videoTitle:
-                "Guarda il video",
-
-            playAudio:
-                "▶ Ascolta",
-
-            stopAudio:
-                "■ Ferma audio",
-
-            audioNote:
-                "Audio generato dalla sintesi vocale del dispositivo.",
-
-            noVideo:
-                "Video non disponibile."
-
-        },
-
-
-        en: {
-
-            code: "en",
-
-            categoryKey:
-                "Categoria Ing",
-
-            secretKey:
-                "The Secret of Virgil (Legend/Curiosity)",
-
-            moreKey:
-                "Find out more",
-
-            secretTitle:
-                "The Secret of Virgil",
-
-            moreTitle:
-                "Find out more",
-
-            audioTitle:
-                "Listen",
-
-            videoTitle:
-                "Watch the video",
-
-            playAudio:
-                "▶ Listen",
-
-            stopAudio:
-                "■ Stop audio",
-
-            audioNote:
-                "Audio generated using the device's speech synthesis.",
-
-            noVideo:
-                "Video not available."
-
-        },
-
-
-        es: {
-
-            code: "es",
-
-            categoryKey:
-                "Categoria Sp",
-
-            secretKey:
-                "El secreto de Virgilio (Leyenda/Curiosidad)",
-
-            moreKey:
-                "Descubra más",
-
-            secretTitle:
-                "El secreto de Virgilio",
-
-            moreTitle:
-                "Descubra más",
-
-            audioTitle:
-                "Escuchar",
-
-            videoTitle:
-                "Ver el vídeo",
-
-            playAudio:
-                "▶ Escuchar",
-
-            stopAudio:
-                "■ Detener audio",
-
-            audioNote:
-                "Audio generado mediante la síntesis de voz del dispositivo.",
-
-            noVideo:
-                "Vídeo no disponible."
-
-        }
-
-    }
-
-};
-
-
-/* ============================================================
-   VARIABILI
-============================================================ */
-
-let monumenti = [];
-
-let markers = [];
+let monuments = [];
 
 let currentLanguage = "it";
 
-let selectedMonument = null;
-
-let cursorMarker = null;
-
-let routeIndex = 0;
-
-let animationFrame = null;
-
-let animationRunning = false;
-
-let segmentStart = null;
-
-let segmentEnd = null;
-
-let segmentProgress = 0;
-
-let pauseUntil = 0;
+let currentMonument = null;
 
 let speechUtterance = null;
 
-let speechPlaying = false;
 
+/* =========================================================
+   TRADUZIONI INTERFACCIA
+   ========================================================= */
 
-/* ============================================================
-   ELEMENTI HTML
-============================================================ */
+const translations = {
 
-const elements = {
+    it: {
+        secret:
+            "Il Segreto di Virgilio",
 
-    map:
-        document.getElementById("map"),
+        more:
+            "Scopri di più",
 
-    languageSelect:
-        document.getElementById("language-select"),
+        audio:
+            "Ascolta",
 
-    monumentPanel:
-        document.getElementById("monument-panel"),
+        audioDescription:
+            "Premi ▶ per ascoltare il testo.",
 
-    closePanel:
-        document.getElementById("close-panel"),
+        video:
+            "▶ Guarda il video"
+    },
 
-    monumentName:
-        document.getElementById("monument-name"),
+    en: {
+        secret:
+            "Virgil's Secret",
 
-    monumentCategory:
-        document.getElementById("monument-category"),
+        more:
+            "Find out more",
 
-    monumentSecret:
-        document.getElementById("monument-secret"),
+        audio:
+            "Listen",
 
-    monumentMore:
-        document.getElementById("monument-more"),
+        audioDescription:
+            "Press ▶ to listen to the text.",
 
-    secretTitle:
-        document.getElementById("secret-title"),
+        video:
+            "▶ Watch the video"
+    },
 
-    moreTitle:
-        document.getElementById("more-title"),
+    es: {
+        secret:
+            "El secreto de Virgilio",
 
-    audioTitle:
-        document.getElementById("audio-title"),
+        more:
+            "Descubre más",
 
-    videoTitle:
-        document.getElementById("video-title"),
+        audio:
+            "Escuchar",
 
-    audioContainer:
-        document.getElementById("audio-container"),
+        audioDescription:
+            "Pulsa ▶ para escuchar el texto.",
 
-    videoContainer:
-        document.getElementById("video-container"),
-
-    startButton:
-        document.getElementById("start-button"),
-
-    pauseButton:
-        document.getElementById("pause-button"),
-
-    resetButton:
-        document.getElementById("reset-button"),
-
-    routeStatusPosition:
-        document.getElementById("route-status-position"),
-
-    loadingScreen:
-        document.getElementById("loading-screen")
+        video:
+            "▶ Ver el vídeo"
+    }
 
 };
 
 
-/* ============================================================
+/* =========================================================
    MAPPA
+   ========================================================= */
 
-   IMPORTANTISSIMO:
-   NON utilizziamo fitBounds().
+let map;
 
-   La mappa deve rimanere centrata su
-   A casa di Francesca all'apertura.
-============================================================ */
+function initializeMap() {
 
-const map = L.map(
-    "map",
-    {
+    /*
+     * Centro iniziale:
+     * A casa di Francesca
+     *
+     * 40.356820
+     * 18.171628
+     */
+
+    map = L.map("map", {
+
         zoomControl: true,
 
-        preferCanvas: true
-    }
-).setView(
+        attributionControl: true
 
-    CONFIG.mapCenter,
+    }).setView(
 
-    CONFIG.defaultZoom
+        [
+            40.356820,
+            18.171628
+        ],
 
-);
-
-
-/* ============================================================
-   CARTOGRAFIA
-============================================================ */
-
-L.tileLayer(
-
-    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-
-    {
-
-        maxZoom: 19,
-
-        attribution:
-            '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>'
-
-    }
-
-).addTo(map);
-
-
-/* ============================================================
-   PIN BLU
-============================================================ */
-
-const blueIcon = L.icon({
-
-    iconUrl:
-        "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png",
-
-    shadowUrl:
-        "https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png",
-
-    iconSize: [
-        25,
-        41
-    ],
-
-    iconAnchor: [
-        12,
-        41
-    ],
-
-    popupAnchor: [
-        1,
-        -34
-    ],
-
-    shadowSize: [
-        41,
-        41
-    ]
-
-});
-
-
-/* ============================================================
-   PIN ROSSO
-============================================================ */
-
-const redIcon = L.icon({
-
-    iconUrl:
-        "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png",
-
-    shadowUrl:
-        "https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png",
-
-    iconSize: [
-        25,
-        41
-    ],
-
-    iconAnchor: [
-        12,
-        41
-    ],
-
-    popupAnchor: [
-        1,
-        -34
-    ],
-
-    shadowSize: [
-        41,
-        41
-    ]
-
-});
-
-
-/* ============================================================
-   ICONA CURSORE VIRGILIO
-============================================================ */
-
-const cursorIcon = L.divIcon({
-
-    className:
-        "virgilio-cursor-wrapper",
-
-    html:
-        '<div class="virgilio-cursor">V</div>',
-
-    iconSize: [
-        36,
-        36
-    ],
-
-    iconAnchor: [
-        18,
-        18
-    ]
-
-});
-
-
-/* ============================================================
-   UTILITY
-============================================================ */
-
-function escapeHtml(value) {
-
-    if (
-        value === null ||
-        value === undefined
-    ) {
-
-        return "";
-
-    }
-
-
-    return String(value)
-
-        .replace(
-            /&/g,
-            "&amp;"
-        )
-
-        .replace(
-            /</g,
-            "&lt;"
-        )
-
-        .replace(
-            />/g,
-            "&gt;"
-        )
-
-        .replace(
-            /"/g,
-            "&quot;"
-        )
-
-        .replace(
-            /'/g,
-            "&#039;"
-        );
-
-}
-
-
-/* ============================================================
-   NOME MONUMENTO
-============================================================ */
-
-function getNome(monumento) {
-
-    return (
-        monumento["Nome Luogo"] ||
-        ""
-    );
-
-}
-
-
-/* ============================================================
-   COORDINATE
-============================================================ */
-
-function getCoordinate(monumento) {
-
-    const lat =
-        parseFloat(
-            monumento["Lat"]
-        );
-
-    const lng =
-        parseFloat(
-            monumento["Long"]
-        );
-
-
-    if (
-        Number.isFinite(lat) &&
-        Number.isFinite(lng)
-    ) {
-
-        return {
-
-            lat: lat,
-
-            lng: lng
-
-        };
-
-    }
-
-
-    return null;
-
-}
-
-
-/* ============================================================
-   CONTROLLO A CASA DI FRANCESCA
-============================================================ */
-
-function isFrancesca(monumento) {
-
-    return (
-
-        getNome(monumento)
-
-            .trim()
-
-            .toLowerCase()
-
-            ===
-
-            "a casa di francesca"
+        16
 
     );
 
-}
 
+    L.tileLayer(
 
-/* ============================================================
-   DATI LOCALIZZATI
-============================================================ */
+        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
 
-function getLocalizedData(monumento) {
+        {
+            maxZoom: 20,
 
-    const language =
-        CONFIG.languages[
-            currentLanguage
-        ];
-
-
-    let secret =
-        monumento[
-            language.secretKey
-        ];
-
-
-    /* ========================================================
-       CORREZIONE DEL CAMPO INGLESE DI PORTA NAPOLI
-
-       Nel JSON attuale è presente:
-       "TheSecret of Virgil..."
-
-       anziché:
-       "The Secret of Virgil..."
-    ======================================================== */
-
-    if (
-        currentLanguage === "en" &&
-        !secret
-    ) {
-
-        secret =
-            monumento[
-                "TheSecret of Virgil (Legend/Curiosity)"
-            ];
-
-    }
-
-
-    return {
-
-        name:
-            getNome(monumento),
-
-        category:
-            monumento[
-                language.categoryKey
-            ] || "",
-
-        secret:
-            secret || "",
-
-        more:
-            monumento[
-                language.moreKey
-            ] || "",
-
-        video:
-            monumento[
-                "Video"
-            ] || "",
-
-        audio:
-            getAudioUrl(
-                monumento,
-                currentLanguage
-            )
-
-    };
-
-}
-
-
-/* ============================================================
-   AUDIO
-
-   Il JSON attuale non contiene ancora i 105 MP3.
-
-   Il codice è comunque già predisposto per usarli.
-
-   Quando aggiungeremo i percorsi degli MP3 al JSON,
-   verranno utilizzati automaticamente.
-
-   In assenza di MP3 viene utilizzata la sintesi vocale.
-============================================================ */
-
-function getAudioUrl(
-    monumento,
-    language
-) {
-
-    const keys = {
-
-        it: [
-            "Audio Ita",
-            "Audio IT",
-            "Audio Italiano",
-            "audio_it",
-            "audio_ita"
-        ],
-
-        en: [
-            "Audio Ing",
-            "Audio EN",
-            "Audio English",
-            "audio_en",
-            "audio_eng"
-        ],
-
-        es: [
-            "Audio Sp",
-            "Audio ES",
-            "Audio Español",
-            "audio_es",
-            "audio_esp"
-        ]
-
-    };
-
-
-    const possibleKeys =
-        keys[language] || [];
-
-
-    for (
-        const key of possibleKeys
-    ) {
-
-        if (
-            monumento[key] &&
-            String(
-                monumento[key]
-            ).trim() !== ""
-        ) {
-
-            return String(
-                monumento[key]
-            ).trim();
-
+            attribution:
+                "&copy; OpenStreetMap contributors"
         }
 
-    }
-
-
-    return "";
+    ).addTo(map);
 
 }
 
 
-/* ============================================================
-   CREAZIONE DEI 35 PIN
-============================================================ */
+/* =========================================================
+   ICONA MARKER
+   ========================================================= */
 
-function creaMarkers() {
+function createMarkerIcon(isFrancesca) {
 
-    markers.forEach(
+    const color =
+        isFrancesca
+            ? "#d71920"
+            : "#1565c0";
 
-        marker => {
 
-            map.removeLayer(
-                marker
+    return L.divIcon({
+
+        className:
+            "custom-marker",
+
+        html: `
+
+            <div style="
+                width: 24px;
+                height: 24px;
+
+                background: ${color};
+
+                border: 3px solid white;
+
+                border-radius:
+                    50% 50% 50% 0;
+
+                transform:
+                    rotate(-45deg);
+
+                box-shadow:
+                    0 2px 6px
+                    rgba(0,0,0,0.35);
+
+                position: relative;
+            ">
+
+                <div style="
+                    width: 8px;
+                    height: 8px;
+
+                    background: white;
+
+                    border-radius: 50%;
+
+                    position: absolute;
+
+                    top: 5px;
+                    left: 5px;
+                "></div>
+
+            </div>
+
+        `,
+
+        iconSize:
+            [24, 24],
+
+        iconAnchor:
+            [12, 24],
+
+        popupAnchor:
+            [0, -24]
+
+    });
+
+}
+
+
+/* =========================================================
+   CARICAMENTO JSON
+   ========================================================= */
+
+async function loadMonuments() {
+
+    try {
+
+        const response =
+            await fetch(DATA_URL);
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Errore nel caricamento del file JSON."
             );
 
         }
 
-    );
+
+        monuments =
+            await response.json();
 
 
-    markers = [];
+        if (!Array.isArray(monuments)) {
+
+            throw new Error(
+                "Il JSON non contiene un elenco valido."
+            );
+
+        }
 
 
-    monumenti.forEach(
+        addMonumentsToMap();
 
-        (
-            monumento,
-            index
-        ) => {
 
-            const coordinate =
-                getCoordinate(
-                    monumento
+    } catch (error) {
+
+        console.error(error);
+
+        alert(
+            "Non è stato possibile caricare " +
+            "monumenti_lecce.json.\n\n" +
+            "Assicurati che il file si trovi " +
+            "nella stessa cartella di index.html."
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   AGGIUNTA DEI 35 MONUMENTI
+   ========================================================= */
+
+function addMonumentsToMap() {
+
+    monuments.forEach(
+        (monument) => {
+
+            const name =
+                monument["Nome Luogo"];
+
+
+            const lat =
+                parseFloat(
+                    monument["Lat"]
                 );
 
 
-            if (!coordinate) {
+            const lng =
+                parseFloat(
+                    monument["Long"]
+                );
+
+
+            if (
+                !name ||
+                Number.isNaN(lat) ||
+                Number.isNaN(lng)
+            ) {
+
+                console.warn(
+                    "Monumento con dati non validi:",
+                    monument
+                );
 
                 return;
 
             }
 
 
-            /* -----------------------------------------------
-               Francesca = ROSSO
-               Tutti gli altri = BLU
-            ------------------------------------------------ */
-
-            const icon =
-                isFrancesca(
-                    monumento
-                )
-
-                    ? redIcon
-
-                    : blueIcon;
+            const isFrancesca =
+                name
+                    .trim()
+                    .toLowerCase() ===
+                "a casa di francesca";
 
 
             const marker =
                 L.marker(
 
-                    [
-                        coordinate.lat,
-                        coordinate.lng
-                    ],
+                    [lat, lng],
 
                     {
-                        icon: icon
+                        icon:
+                            createMarkerIcon(
+                                isFrancesca
+                            )
                     }
 
                 ).addTo(map);
 
 
-            marker.monumento =
-                monumento;
+            marker.bindTooltip(
 
+                name,
 
-            marker.routeIndex =
-                index;
+                {
+                    direction: "top",
 
+                    offset:
+                        [0, -20]
+                }
 
-            /* -----------------------------------------------
-               CLICK PIN
-            ------------------------------------------------ */
+            );
+
 
             marker.on(
 
                 "click",
 
-                () => {
+                function () {
 
-                    apriScheda(
-                        monumento
+                    openMonument(
+                        monument,
+                        marker
                     );
 
                 }
 
             );
 
-
-            /* -----------------------------------------------
-               TOOLTIP
-            ------------------------------------------------ */
-
-            marker.bindTooltip(
-
-                escapeHtml(
-                    getNome(
-                        monumento
-                    )
-                ),
-
-                {
-
-                    direction: "top",
-
-                    offset: [
-                        0,
-                        -35
-                    ]
-
-                }
-
-            );
-
-
-            markers.push(
-                marker
-            );
-
         }
-
     );
 
 }
 
 
-/* ============================================================
-   CREA CURSORE
-============================================================ */
+/* =========================================================
+   CAMPI DEL JSON IN BASE ALLA LINGUA
+   ========================================================= */
 
-function creaCursore() {
+function getFieldsForLanguage() {
 
-    if (
-        cursorMarker
-    ) {
+    if (currentLanguage === "en") {
 
-        map.removeLayer(
-            cursorMarker
-        );
+        return {
+
+            secret:
+                "The Secret of Virgil (Legend/Curiosity)",
+
+            more:
+                "Find out more"
+
+        };
 
     }
 
 
-    if (
-        monumenti.length === 0
-    ) {
+    if (currentLanguage === "es") {
 
-        return;
+        return {
+
+            secret:
+                "El secreto de Virgilio (Leyenda/Curiosidad)",
+
+            more:
+                "Descubra más"
+
+        };
+
+    }
+
+
+    return {
+
+        secret:
+            "Il Segreto di Virgilio (Leggenda/Curiosità)",
+
+        more:
+            "Scopri di più"
+
+    };
+
+}
+
+
+/* =========================================================
+   APERTURA POPUP
+   ========================================================= */
+
+function openMonument(
+    monument,
+    marker
+) {
+
+    currentMonument =
+        monument;
+
+
+    const fields =
+        getFieldsForLanguage();
+
+
+    const labels =
+        translations[
+            currentLanguage
+        ];
+
+
+    /*
+     * NOME
+     */
+
+    document
+        .getElementById(
+            "place-name"
+        )
+        .textContent =
+            monument["Nome Luogo"] || "";
+
+
+    /*
+     * SEGRETO
+     */
+
+    document
+        .getElementById(
+            "secret-title"
+        )
+        .textContent =
+            labels.secret;
+
+
+    document
+        .getElementById(
+            "place-secret"
+        )
+        .textContent =
+            monument[
+                fields.secret
+            ] || "";
+
+
+    /*
+     * SCOPRI DI PIÙ
+     */
+
+    document
+        .getElementById(
+            "more-title"
+        )
+        .textContent =
+            labels.more;
+
+
+    document
+        .getElementById(
+            "place-more"
+        )
+        .textContent =
+            monument[
+                fields.more
+            ] || "";
+
+
+    /*
+     * AUDIO
+     *
+     * L'audio utilizza il testo di
+     * "Scopri di più".
+     */
+
+    document
+        .getElementById(
+            "audio-title"
+        )
+        .textContent =
+            labels.audio;
+
+
+    document
+        .getElementById(
+            "audio-description"
+        )
+        .textContent =
+            labels.audioDescription;
+
+
+    /*
+     * VIDEO
+     */
+
+    setupVideo(
+        monument["Video"],
+        labels
+    );
+
+
+    /*
+     * APERTURA MODALE
+     */
+
+    document
+        .getElementById(
+            "place-modal"
+        )
+        .classList.remove(
+            "hidden"
+        );
+
+
+    /*
+     * Quando si apre un nuovo monumento
+     * interrompiamo eventuale lettura precedente.
+     */
+
+    stopSpeech();
+
+}
+
+
+/* =========================================================
+   SINTESI VOCALE
+   ========================================================= */
+
+function getSpeechLanguage() {
+
+    if (currentLanguage === "en") {
+
+        return "en-US";
+
+    }
+
+
+    if (currentLanguage === "es") {
+
+        return "es-ES";
+
+    }
+
+
+    return "it-IT";
+
+}
+
+
+/* =========================================================
+   TROVA VOCE
+   ========================================================= */
+
+function getBestVoice(language) {
+
+    const voices =
+        window.speechSynthesis
+            .getVoices();
+
+
+    if (!voices.length) {
+
+        return null;
 
     }
 
 
     /*
-       Il cursore parte dal primo monumento
-       dell'ordine presente nel JSON.
-    */
+     * Prima cerchiamo una voce
+     * esattamente corrispondente.
+     */
 
-    const first =
-        getCoordinate(
-            monumenti[0]
+    let voice =
+        voices.find(
+            v =>
+                v.lang.toLowerCase() ===
+                language.toLowerCase()
         );
 
 
-    if (!first) {
+    if (voice) {
 
-        return;
+        return voice;
 
     }
 
 
-    cursorMarker =
-        L.marker(
+    /*
+     * Poi cerchiamo almeno
+     * la stessa lingua.
+     */
 
-            [
-                first.lat,
-                first.lng
-            ],
-
-            {
-
-                icon:
-                    cursorIcon,
-
-                zIndexOffset:
-                    1000,
-
-                interactive:
-                    false
-
-            }
-
-        ).addTo(map);
+    const prefix =
+        language
+            .substring(0, 2)
+            .toLowerCase();
 
 
-    routeIndex = 0;
+    voice =
+        voices.find(
+            v =>
+                v.lang
+                    .substring(0, 2)
+                    .toLowerCase() ===
+                prefix
+        );
 
-    segmentStart = null;
 
-    segmentEnd = null;
-
-    segmentProgress = 0;
-
-    aggiornaStatoPercorso();
+    return voice || null;
 
 }
 
 
-/* ============================================================
-   APERTURA SCHEDA
-============================================================ */
+/* =========================================================
+   LEGGI SCOPRI DI PIÙ
+   ========================================================= */
 
-function apriScheda(monumento) {
-
-    selectedMonument =
-        monumento;
-
-
-    aggiornaScheda();
-
-
-    elements.monumentPanel
-        .classList
-        .remove(
-            "hidden"
-        );
-
-
-    elements.monumentPanel
-        .setAttribute(
-            "aria-hidden",
-            "false"
-        );
-
-}
-
-
-/* ============================================================
-   CHIUSURA SCHEDA
-============================================================ */
-
-function chiudiScheda() {
-
-    elements.monumentPanel
-        .classList
-        .add(
-            "hidden"
-        );
-
-
-    elements.monumentPanel
-        .setAttribute(
-            "aria-hidden",
-            "true"
-        );
-
-
-    selectedMonument =
-        null;
-
-
-    stopSpeech();
-
-}
-
-
-/* ============================================================
-   AGGIORNA SCHEDA
-============================================================ */
-
-function aggiornaScheda() {
+function speakMoreText() {
 
     if (
-        !selectedMonument
-    ) {
-
-        return;
-
-    }
-
-
-    const language =
-        CONFIG.languages[
-            currentLanguage
-        ];
-
-
-    const data =
-        getLocalizedData(
-            selectedMonument
-        );
-
-
-    elements.monumentName
-        .textContent =
-        data.name;
-
-
-    elements.monumentCategory
-        .textContent =
-        data.category;
-
-
-    elements.monumentSecret
-        .textContent =
-        data.secret;
-
-
-    elements.monumentMore
-        .textContent =
-        data.more;
-
-
-    elements.secretTitle
-        .textContent =
-        language.secretTitle;
-
-
-    elements.moreTitle
-        .textContent =
-        language.moreTitle;
-
-
-    elements.audioTitle
-        .textContent =
-        language.audioTitle;
-
-
-    elements.videoTitle
-        .textContent =
-        language.videoTitle;
-
-
-    creaAudio(
-        selectedMonument,
-        data.audio
-    );
-
-
-    creaVideo(
-        data.video
-    );
-
-}
-
-
-/* ============================================================
-   AUDIO
-============================================================ */
-
-function creaAudio(
-    monumento,
-    audioUrl
-) {
-
-    const language =
-        CONFIG.languages[
-            currentLanguage
-        ];
-
-
-    elements.audioContainer
-        .innerHTML = "";
-
-
-    /* ========================================================
-       SE ESISTE UN MP3 REALE
-    ======================================================== */
-
-    if (
-        audioUrl
-    ) {
-
-        const audio =
-            document.createElement(
-                "audio"
-            );
-
-
-        audio.controls =
-            true;
-
-
-        audio.preload =
-            "none";
-
-
-        audio.src =
-            audioUrl;
-
-
-        audio.className =
-            "audio-player";
-
-
-        elements.audioContainer
-            .appendChild(
-                audio
-            );
-
-
-        return;
-
-    }
-
-
-    /* ========================================================
-       SINTESI VOCALE
-    ======================================================== */
-
-    const button =
-        document.createElement(
-            "button"
-        );
-
-
-    button.type =
-        "button";
-
-
-    button.className =
-        "audio-button";
-
-
-    button.textContent =
-        language.playAudio;
-
-
-    button.addEventListener(
-
-        "click",
-
-        () => {
-
-            if (
-                speechPlaying
-            ) {
-
-                stopSpeech();
-
-                button.textContent =
-                    language.playAudio;
-
-                return;
-
-            }
-
-
-            speakMonument(
-                monumento
-            );
-
-
-            button.textContent =
-                language.stopAudio;
-
-        }
-
-    );
-
-
-    elements.audioContainer
-        .appendChild(
-            button
-        );
-
-
-    const note =
-        document.createElement(
-            "div"
-        );
-
-
-    note.className =
-        "audio-note";
-
-
-    note.textContent =
-        language.audioNote;
-
-
-    elements.audioContainer
-        .appendChild(
-            note
-        );
-
-}
-
-
-/* ============================================================
-   TESTO PER SINTESI VOCALE
-============================================================ */
-
-function getSpeechText(
-    monumento
-) {
-
-    const data =
-        getLocalizedData(
-            monumento
-        );
-
-
-    return [
-
-        data.name,
-
-        data.secret,
-
-        data.more
-
-    ]
-
-        .filter(
-            Boolean
-        )
-
-        .join(". ");
-
-}
-
-
-/* ============================================================
-   AVVIO SINTESI VOCALE
-============================================================ */
-
-function speakMonument(
-    monumento
-) {
-
-    if (
-        !(
-            "speechSynthesis"
-            in window
-        )
+        !("speechSynthesis" in window)
     ) {
 
         alert(
-            "La sintesi vocale non è supportata da questo browser."
+            "Il tuo dispositivo/browser " +
+            "non supporta la sintesi vocale."
         );
 
         return;
@@ -1255,13 +639,31 @@ function speakMonument(
     }
 
 
-    stopSpeech();
+    if (!currentMonument) {
+
+        return;
+
+    }
+
+
+    const fields =
+        getFieldsForLanguage();
 
 
     const text =
-        getSpeechText(
-            monumento
-        );
+        currentMonument[
+            fields.more
+        ] || "";
+
+
+    if (!text.trim()) {
+
+        return;
+
+    }
+
+
+    stopSpeech();
 
 
     speechUtterance =
@@ -1270,21 +672,16 @@ function speakMonument(
         );
 
 
+    const language =
+        getSpeechLanguage();
+
+
     speechUtterance.lang =
-
-        currentLanguage === "it"
-
-            ? "it-IT"
-
-            : currentLanguage === "en"
-
-                ? "en-US"
-
-                : "es-ES";
+        language;
 
 
     speechUtterance.rate =
-        0.92;
+        0.95;
 
 
     speechUtterance.pitch =
@@ -1295,33 +692,18 @@ function speakMonument(
         1;
 
 
-    speechUtterance.onstart =
-        () => {
-
-            speechPlaying =
-                true;
-
-        };
+    const voice =
+        getBestVoice(
+            language
+        );
 
 
-    speechUtterance.onend =
-        () => {
+    if (voice) {
 
-            speechPlaying =
-                false;
+        speechUtterance.voice =
+            voice;
 
-            aggiornaScheda();
-
-        };
-
-
-    speechUtterance.onerror =
-        () => {
-
-            speechPlaying =
-                false;
-
-        };
+    }
 
 
     window.speechSynthesis
@@ -1332,644 +714,476 @@ function speakMonument(
 }
 
 
-/* ============================================================
-   FERMA SINTESI
-============================================================ */
+/* =========================================================
+   PAUSA
+   ========================================================= */
+
+function pauseSpeech() {
+
+    if (
+        "speechSynthesis" in window &&
+        window.speechSynthesis.speaking
+    ) {
+
+        window.speechSynthesis.pause();
+
+    }
+
+}
+
+
+/* =========================================================
+   RIPRENDI
+   ========================================================= */
+
+function resumeSpeech() {
+
+    if (
+        "speechSynthesis" in window &&
+        window.speechSynthesis.paused
+    ) {
+
+        window.speechSynthesis.resume();
+
+    }
+
+}
+
+
+/* =========================================================
+   STOP
+   ========================================================= */
 
 function stopSpeech() {
 
     if (
-        "speechSynthesis"
-        in window
+        "speechSynthesis" in window
     ) {
 
-        window.speechSynthesis
-            .cancel();
+        window.speechSynthesis.cancel();
 
     }
-
-
-    speechPlaying =
-        false;
 
 }
 
 
-/* ============================================================
+/* =========================================================
+   RIPETI
+   ========================================================= */
+
+function repeatSpeech() {
+
+    if (!currentMonument) {
+
+        return;
+
+    }
+
+    speakMoreText();
+
+}
+
+
+/* =========================================================
+   PULSANTE PLAY
+   ========================================================= */
+
+document
+    .getElementById(
+        "audio-play"
+    )
+    .addEventListener(
+        "click",
+        function () {
+
+            if (
+                window.speechSynthesis
+                    .paused
+            ) {
+
+                resumeSpeech();
+
+            } else {
+
+                speakMoreText();
+
+            }
+
+        }
+    );
+
+
+/* =========================================================
+   PULSANTE PAUSA
+   ========================================================= */
+
+document
+    .getElementById(
+        "audio-pause"
+    )
+    .addEventListener(
+        "click",
+        function () {
+
+            pauseSpeech();
+
+        }
+    );
+
+
+/* =========================================================
+   PULSANTE RIPETI
+   ========================================================= */
+
+document
+    .getElementById(
+        "audio-repeat"
+    )
+    .addEventListener(
+        "click",
+        function () {
+
+            repeatSpeech();
+
+        }
+    );
+
+
+/* =========================================================
    VIDEO
-============================================================ */
+   ========================================================= */
 
-function creaVideo(
-    videoUrl
+function setupVideo(
+    videoUrl,
+    labels
 ) {
 
-    const language =
-        CONFIG.languages[
-            currentLanguage
-        ];
+    const section =
+        document.getElementById(
+            "video-section"
+        );
 
 
-    elements.videoContainer
-        .innerHTML = "";
+    const button =
+        document.getElementById(
+            "video-btn"
+        );
 
 
     if (
-        !videoUrl
+        typeof videoUrl !== "string" ||
+        videoUrl.trim() === ""
     ) {
 
-        const message =
-            document.createElement(
-                "p"
-            );
-
-
-        message.className =
-            "no-media";
-
-
-        message.textContent =
-            language.noVideo;
-
-
-        elements.videoContainer
-            .appendChild(
-                message
-            );
-
+        section.classList.add(
+            "hidden"
+        );
 
         return;
 
     }
 
 
-    const youtubeId =
-        getYoutubeId(
-            videoUrl
-        );
+    section.classList.remove(
+        "hidden"
+    );
 
 
-    /* ========================================================
-       YOUTUBE
-    ======================================================== */
+    button.textContent =
+        labels.video;
 
-    if (
-        youtubeId
-    ) {
 
-        const iframe =
-            document.createElement(
-                "iframe"
+    button.onclick =
+        function () {
+
+            window.open(
+                videoUrl.trim(),
+                "_blank",
+                "noopener,noreferrer"
             );
 
+        };
 
-        iframe.className =
-            "video-frame";
-
-
-        iframe.src =
-            "https://www.youtube.com/embed/" +
-            youtubeId;
+}
 
 
-        iframe.title =
-            "Virgilio video";
+/* =========================================================
+   CHIUDI POPUP
+   ========================================================= */
+
+function closeMonument() {
+
+    stopSpeech();
+
+    currentMonument =
+        null;
 
 
-        iframe.loading =
-            "lazy";
-
-
-        iframe.allow =
-            "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
-
-
-        iframe.allowFullscreen =
-            true;
-
-
-        elements.videoContainer
-            .appendChild(
-                iframe
-            );
-
-
-        return;
-
-    }
-
-
-    /* ========================================================
-       LINK VIDEO
-    ======================================================== */
-
-    const link =
-        document.createElement(
-            "a"
-        );
-
-
-    link.className =
-        "video-link";
-
-
-    link.href =
-        videoUrl;
-
-
-    link.target =
-        "_blank";
-
-
-    link.rel =
-        "noopener noreferrer";
-
-
-    link.textContent =
-        "▶ " +
-        language.videoTitle;
-
-
-    elements.videoContainer
-        .appendChild(
-            link
+    document
+        .getElementById(
+            "place-modal"
+        )
+        .classList.add(
+            "hidden"
         );
 
 }
 
 
-/* ============================================================
-   ESTRAI ID YOUTUBE
-============================================================ */
-
-function getYoutubeId(
-    url
-) {
-
-    if (
-        !url
-    ) {
-
-        return null;
-
-    }
+document
+    .getElementById(
+        "close-modal"
+    )
+    .addEventListener(
+        "click",
+        closeMonument
+    );
 
 
-    try {
+/*
+ * Cliccando fuori dalla scheda
+ * la scheda viene chiusa.
+ */
 
-        const parsed =
-            new URL(
-                url
-            );
+document
+    .getElementById(
+        "place-modal"
+    )
+    .addEventListener(
+        "click",
+        function (event) {
+
+            if (
+                event.target ===
+                this
+            ) {
+
+                closeMonument();
+
+            }
+
+        }
+    );
 
 
-        /* youtube.com/watch?v= */
+/* =========================================================
+   CAMBIO LINGUA
+   ========================================================= */
 
-        if (
-            parsed.hostname
-                .includes(
-                    "youtube.com"
-                )
-        ) {
+document
+    .querySelectorAll(
+        ".language-btn"
+    )
+    .forEach(
+        button => {
 
-            const id =
-                parsed.searchParams
-                    .get(
-                        "v"
+            button.addEventListener(
+                "click",
+                function () {
+
+                    currentLanguage =
+                        this.dataset.lang;
+
+
+                    /*
+                     * Aggiorna pulsanti.
+                     */
+
+                    document
+                        .querySelectorAll(
+                            ".language-btn"
+                        )
+                        .forEach(
+                            btn =>
+                                btn.classList
+                                    .remove(
+                                        "active"
+                                    )
+                        );
+
+
+                    this.classList.add(
+                        "active"
                     );
 
 
-            if (
-                id
-            ) {
+                    /*
+                     * Se la scheda è aperta,
+                     * aggiorna immediatamente
+                     * il contenuto.
+                     */
 
-                return id;
+                    if (
+                        currentMonument
+                    ) {
 
-            }
-
-
-            /* youtube.com/embed/ID */
-
-            const match =
-                parsed.pathname.match(
-                    /\/embed\/([^/?]+)/
-                );
+                        const monument =
+                            currentMonument;
 
 
-            if (
-                match
-            ) {
-
-                return match[1];
-
-            }
-
-        }
+                        stopSpeech();
 
 
-        /* youtu.be/ID */
+                        openMonument(
+                            monument,
+                            null
+                        );
 
-        if (
-            parsed.hostname ===
-            "youtu.be"
-        ) {
+                    }
 
-            return parsed.pathname
-                .replace(
-                    "/",
-                    ""
-                );
+                }
+            );
 
         }
+    );
 
-    }
 
-    catch (
-        error
-    ) {
+/* =========================================================
+   CURSORE DEL PERCORSO
+   ========================================================= */
 
-        console.warn(
-            "URL video non valida:",
-            url
+let routeCursor;
+
+let routeIndex = 0;
+
+let routeAnimation = null;
+
+let routePlaying = false;
+
+
+function initializeRouteCursor() {
+
+    routeCursor =
+        document.getElementById(
+            "route-cursor"
         );
 
-    }
-
-
-    return null;
-
 }
 
 
-/* ============================================================
-   INTERPOLAZIONE
-============================================================ */
-
-function interpolate(
-    start,
-    end,
-    progress
-) {
-
-    return {
-
-        lat:
-            start.lat +
-            (
-                end.lat -
-                start.lat
-            ) *
-            progress,
-
-        lng:
-            start.lng +
-            (
-                end.lng -
-                start.lng
-            ) *
-            progress
-
-    };
-
-}
-
-
-/* ============================================================
-   ANIMAZIONE CURSORE
-============================================================ */
-
-function animateCursor(
-    timestamp
+function moveCursorToMonument(
+    index
 ) {
 
     if (
-        !animationRunning
+        !routeCursor ||
+        !monuments[index]
     ) {
-
-        animationFrame =
-            null;
 
         return;
 
     }
 
 
-    if (
-        monumenti.length < 2
-    ) {
-
-        animationRunning =
-            false;
-
-        animationFrame =
-            null;
-
-        return;
-
-    }
+    const monument =
+        monuments[index];
 
 
-    /* ========================================================
-       PAUSA
-    ======================================================== */
-
-    if (
-        pauseUntil &&
-        timestamp < pauseUntil
-    ) {
-
-        animationFrame =
-            requestAnimationFrame(
-                animateCursor
-            );
-
-        return;
-
-    }
-
-
-    pauseUntil = 0;
-
-
-    /* ========================================================
-       FINE PERCORSO
-    ======================================================== */
-
-    if (
-        routeIndex >=
-        monumenti.length - 1
-    ) {
-
-        animationRunning =
-            false;
-
-        animationFrame =
-            null;
-
-        aggiornaStatoPercorso();
-
-        return;
-
-    }
-
-
-    /* ========================================================
-       CREA SEGMENTO
-    ======================================================== */
-
-    if (
-        !segmentStart ||
-        !segmentEnd
-    ) {
-
-        const current =
-            getCoordinate(
-                monumenti[
-                    routeIndex
-                ]
-            );
-
-
-        const next =
-            getCoordinate(
-                monumenti[
-                    routeIndex + 1
-                ]
-            );
-
-
-        if (
-            !current ||
-            !next
-        ) {
-
-            routeIndex++;
-
-            segmentStart =
-                null;
-
-            segmentEnd =
-                null;
-
-            segmentProgress =
-                0;
-
-            animationFrame =
-                requestAnimationFrame(
-                    animateCursor
-                );
-
-            return;
-
-        }
-
-
-        segmentStart =
-            current;
-
-
-        segmentEnd =
-            next;
-
-
-        segmentProgress =
-            0;
-
-    }
-
-
-    /* ========================================================
-       MOVIMENTO
-    ======================================================== */
-
-    segmentProgress +=
-        CONFIG.cursorSpeed;
-
-
-    if (
-        segmentProgress >= 1
-    ) {
-
-        segmentProgress =
-            1;
-
-
-        const finalPosition =
-            interpolate(
-
-                segmentStart,
-
-                segmentEnd,
-
-                segmentProgress
-
-            );
-
-
-        cursorMarker.setLatLng(
-
-            [
-                finalPosition.lat,
-                finalPosition.lng
-            ]
-
+    const lat =
+        parseFloat(
+            monument["Lat"]
         );
 
 
-        routeIndex++;
-
-
-        segmentStart =
-            null;
-
-        segmentEnd =
-            null;
-
-        segmentProgress =
-            0;
-
-
-        aggiornaStatoPercorso();
-
-
-        /* ====================================================
-           APRE LA SCHEDA DEL MONUMENTO RAGGIUNTO
-        ==================================================== */
-
-        if (
-            routeIndex <
-            monumenti.length
-        ) {
-
-            apriScheda(
-                monumenti[
-                    routeIndex
-                ]
-            );
-
-
-            pauseUntil =
-                timestamp +
-                CONFIG.pauseAtMonument;
-
-        }
-
-
-    }
-
-    else {
-
-        const position =
-            interpolate(
-
-                segmentStart,
-
-                segmentEnd,
-
-                segmentProgress
-
-            );
-
-
-        cursorMarker.setLatLng(
-
-            [
-                position.lat,
-                position.lng
-            ]
-
+    const lng =
+        parseFloat(
+            monument["Long"]
         );
 
-    }
 
-
-    animationFrame =
-        requestAnimationFrame(
-            animateCursor
+    const point =
+        map.latLngToContainerPoint(
+            [lat, lng]
         );
+
+
+    routeCursor.style.left =
+        `${point.x - 9}px`;
+
+
+    routeCursor.style.top =
+        `${point.y - 9}px`;
+
+
+    routeCursor.style.display =
+        "block";
 
 }
 
 
-/* ============================================================
-   AVVIA PERCORSO
-============================================================ */
+function playRoute() {
 
-function startRoute() {
-
-    if (
-        monumenti.length < 2
-    ) {
+    if (!monuments.length) {
 
         return;
 
     }
 
 
-    /* Se siamo alla fine, ricominciamo */
-
-    if (
-        routeIndex >=
-        monumenti.length - 1
-    ) {
-
-        resetRoute();
-
-    }
-
-
-    animationRunning =
+    routePlaying =
         true;
 
 
-    pauseUntil =
-        0;
+    clearInterval(
+        routeAnimation
+    );
 
 
-    if (
-        !animationFrame
-    ) {
+    moveCursorToMonument(
+        routeIndex
+    );
 
-        animationFrame =
-            requestAnimationFrame(
-                animateCursor
-            );
 
-    }
+    routeAnimation =
+        setInterval(
+            function () {
+
+                if (!routePlaying) {
+
+                    return;
+
+                }
+
+
+                routeIndex++;
+
+
+                if (
+                    routeIndex >=
+                    monuments.length
+                ) {
+
+                    routeIndex = 0;
+
+                }
+
+
+                moveCursorToMonument(
+                    routeIndex
+                );
+
+            },
+
+            3000
+        );
 
 }
 
-
-/* ============================================================
-   PAUSA
-============================================================ */
 
 function pauseRoute() {
 
-    animationRunning =
+    routePlaying =
         false;
 
 
-    if (
-        animationFrame
-    ) {
-
-        cancelAnimationFrame(
-            animationFrame
-        );
-
-        animationFrame =
-            null;
-
-    }
+    clearInterval(
+        routeAnimation
+    );
 
 }
 
 
-/* ============================================================
-   RICOMINCIA
-============================================================ */
-
-function resetRoute() {
+function restartRoute() {
 
     pauseRoute();
 
@@ -1978,340 +1192,27 @@ function resetRoute() {
         0;
 
 
-    segmentStart =
-        null;
-
-
-    segmentEnd =
-        null;
-
-
-    segmentProgress =
-        0;
-
-
-    pauseUntil =
-        0;
-
-
-    if (
-        cursorMarker &&
-        monumenti.length > 0
-    ) {
-
-        const first =
-            getCoordinate(
-                monumenti[0]
-            );
-
-
-        if (
-            first
-        ) {
-
-            cursorMarker.setLatLng(
-
-                [
-                    first.lat,
-                    first.lng
-                ]
-
-            );
-
-        }
-
-    }
-
-
-    aggiornaStatoPercorso();
-
-
-    chiudiScheda();
-
-}
-
-
-/* ============================================================
-   STATO PERCORSO
-============================================================ */
-
-function aggiornaStatoPercorso() {
-
-    if (
-        !elements.routeStatusPosition
-    ) {
-
-        return;
-
-    }
-
-
-    const total =
-        monumenti.length;
-
-
-    const current =
-        Math.min(
-
-            routeIndex + 1,
-
-            total
-
-        );
-
-
-    elements.routeStatusPosition
-        .textContent =
-        current +
-        " / " +
-        total;
-
-}
-
-
-/* ============================================================
-   CAMBIO LINGUA
-============================================================ */
-
-function cambiaLingua(
-    language
-) {
-
-    if (
-        !CONFIG.languages[
-            language
-        ]
-    ) {
-
-        return;
-
-    }
-
-
-    currentLanguage =
-        language;
-
-
-    document.documentElement.lang =
-        language;
-
-
-    stopSpeech();
-
-
-    if (
-        selectedMonument
-    ) {
-
-        aggiornaScheda();
-
-    }
-
-
-    /* Aggiorna i nomi dei pin */
-
-    markers.forEach(
-
-        marker => {
-
-            if (
-                marker.monumento
-            ) {
-
-                marker.setTooltipContent(
-
-                    escapeHtml(
-                        getNome(
-                            marker.monumento
-                        )
-                    )
-
-                );
-
-            }
-
-        }
-
+    moveCursorToMonument(
+        routeIndex
     );
 
 }
 
 
-/* ============================================================
-   CARICA JSON
-============================================================ */
+/* =========================================================
+   AGGIORNAMENTO CURSORE
+   ========================================================= */
 
-async function caricaMonumenti() {
+function updateCursorPosition() {
 
-    try {
-
-        const response =
-            await fetch(
-                CONFIG.jsonFile,
-                {
-                    cache: "no-cache"
-                }
-            );
-
-
-        if (
-            !response.ok
-        ) {
-
-            throw new Error(
-
-                "Impossibile caricare " +
-                CONFIG.jsonFile +
-                " (HTTP " +
-                response.status +
-                ")."
-
-            );
-
-        }
-
-
-        const data =
-            await response.json();
-
-
-        if (
-            !Array.isArray(data)
-        ) {
-
-            throw new Error(
-                "Il file JSON non contiene un array valido."
-            );
-
-        }
-
-
-        monumenti =
-            data.filter(
-
-                monumento => {
-
-                    return (
-                        getCoordinate(
-                            monumento
-                        ) !== null
-                    );
-
-                }
-
-            );
-
-
-        if (
-            monumenti.length === 0
-        ) {
-
-            throw new Error(
-                "Non è stato trovato nessun monumento con coordinate valide."
-            );
-
-        }
-
-
-        console.log(
-            "Virgilio: caricati " +
-            monumenti.length +
-            " monumenti."
-        );
-
-
-        /* ====================================================
-           CONTROLLO DEI 35 MONUMENTI
-        ==================================================== */
-
-        if (
-            monumenti.length !==
-            CONFIG.expectedMonuments
-        ) {
-
-            console.warn(
-
-                "ATTENZIONE: il JSON contiene " +
-                monumenti.length +
-                " monumenti. " +
-                "Sono previsti " +
-                CONFIG.expectedMonuments +
-                "."
-
-            );
-
-        }
-
-
-        /* ====================================================
-           CONTROLLO FRANCESCA
-        ==================================================== */
-
-        const francesca =
-            monumenti.find(
-                isFrancesca
-            );
-
-
-        if (
-            !francesca
-        ) {
-
-            console.warn(
-                "A casa di Francesca non è stata trovata nel JSON."
-            );
-
-        }
-
-
-        /* ====================================================
-           CREA PIN
-        ==================================================== */
-
-        creaMarkers();
-
-
-        /* ====================================================
-           CREA CURSORE
-        ==================================================== */
-
-        creaCursore();
-
-
-        /* ====================================================
-           IMPORTANTISSIMO:
-           NON fare fitBounds.
-
-           La mappa deve rimanere centrata su
-           A casa di Francesca.
-        ==================================================== */
-
-        map.setView(
-
-            CONFIG.mapCenter,
-
-            CONFIG.defaultZoom
-
-        );
-
-
-        nascondiLoading();
-
-
-    }
-
-    catch (
-        error
+    if (
+        routeCursor &&
+        routeCursor.style.display !==
+            "none"
     ) {
 
-        console.error(
-            "Errore:",
-            error
-        );
-
-
-        mostraErroreCaricamento(
-            error
+        moveCursorToMonument(
+            routeIndex
         );
 
     }
@@ -2319,184 +1220,45 @@ async function caricaMonumenti() {
 }
 
 
-/* ============================================================
-   NASCONDI LOADING
-============================================================ */
+/* =========================================================
+   EVENTI CURSORE
+   ========================================================= */
 
-function nascondiLoading() {
-
-    elements.loadingScreen
-        .classList
-        .add(
-            "hidden"
-        );
-
-}
-
-
-/* ============================================================
-   MOSTRA ERRORE
-============================================================ */
-
-function mostraErroreCaricamento(
-    error
-) {
-
-    elements.loadingScreen
-        .innerHTML = `
-
-            <div class="loading-box">
-
-                <h2>
-                    Impossibile caricare Virgilio
-                </h2>
-
-                <p>
-                    Controlla che
-                    <strong>
-                        monumenti_lecce.json
-                    </strong>
-                    si trovi nella stessa cartella
-                    di
-                    <strong>
-                        index.html
-                    </strong>.
-                </p>
-
-                <p>
-                    ${escapeHtml(
-                        error.message
-                    )}
-                </p>
-
-            </div>
-
-        `;
-
-}
-
-
-/* ============================================================
-   EVENTI
-============================================================ */
-
-function collegaEventi() {
-
-    /* ========================================================
-       CAMBIO LINGUA
-    ======================================================== */
-
-    elements.languageSelect
-        .addEventListener(
-
-            "change",
-
-            event => {
-
-                cambiaLingua(
-                    event.target.value
-                );
-
-            }
-
-        );
-
-
-    /* ========================================================
-       CHIUDI SCHEDA
-    ======================================================== */
-
-    elements.closePanel
-        .addEventListener(
-
-            "click",
-
-            chiudiScheda
-
-        );
-
-
-    /* ========================================================
-       AVVIA
-    ======================================================== */
-
-    elements.startButton
-        .addEventListener(
-
-            "click",
-
-            startRoute
-
-        );
-
-
-    /* ========================================================
-       PAUSA
-    ======================================================== */
-
-    elements.pauseButton
-        .addEventListener(
-
-            "click",
-
-            pauseRoute
-
-        );
-
-
-    /* ========================================================
-       RICOMINCIA
-    ======================================================== */
-
-    elements.resetButton
-        .addEventListener(
-
-            "click",
-
-            resetRoute
-
-        );
-
-
-    /* ========================================================
-       ESC = CHIUDI SCHEDA
-    ======================================================== */
-
-    document.addEventListener(
-
-        "keydown",
-
-        event => {
-
-            if (
-                event.key === "Escape"
-            ) {
-
-                chiudiScheda();
-
-            }
-
-        }
-
+document
+    .getElementById(
+        "audio-play"
     );
 
-}
+
+/*
+ * Il cursore segue la mappa
+ * quando viene spostata.
+ */
+
+window.addEventListener(
+    "resize",
+    updateCursorPosition
+);
 
 
-/* ============================================================
+/* =========================================================
    AVVIO
-============================================================ */
+   ========================================================= */
 
 document.addEventListener(
-
     "DOMContentLoaded",
+    function () {
 
-    async () => {
+        initializeMap();
 
-        collegaEventi();
+        initializeRouteCursor();
 
-        await caricaMonumenti();
+        map.on(
+            "move zoom",
+            updateCursorPosition
+        );
+
+        loadMonuments();
 
     }
-
 );
