@@ -2,17 +2,20 @@
    VIRGILIO - LECCE
    APP.JS
 
-   Funzioni:
-   - caricamento dei 35 monumenti dal JSON
-   - mappa Leaflet
+   VERSIONE COMPLETA
+
+   - 35 monumenti caricati dal JSON
+   - mappa centrata su A casa di Francesca
    - pin blu
-   - pin rosso A casa di Francesca
-   - 3 lingue
+   - A casa di Francesca pin rosso
+   - italiano / inglese / spagnolo
    - scheda monumento
+   - Segreto di Virgilio
+   - Scopri di più
    - audio
    - video
-   - cursore animato
-   - controlli avvio / pausa / reset
+   - cursore Virgilio
+   - avvio / pausa / ricomincia
 ============================================================ */
 
 
@@ -22,22 +25,51 @@
 
 const CONFIG = {
 
+    /* File dati */
     jsonFile: "./monumenti_lecce.json",
 
+
+    /* ========================================================
+       CENTRO INIZIALE DELLA MAPPA
+
+       A casa di Francesca
+       Coordinate prese direttamente dal JSON.
+    ======================================================== */
+
     mapCenter: [
-        40.3547,
-        18.1728
+        40.356820,
+        18.171628
     ],
 
-    defaultZoom: 15,
+
+    /* Zoom iniziale */
+    defaultZoom: 16,
+
+
+    /* Monumenti previsti */
+    expectedMonuments: 35,
+
+
+    /* Velocità del cursore */
+    cursorSpeed: 0.00022,
+
+
+    /* Pausa quando raggiunge un monumento */
+    pauseAtMonument: 1800,
+
+
+    /* ========================================================
+       LINGUE
+    ======================================================== */
 
     languages: {
 
         it: {
-            code: "it",
-            label: "Italiano",
 
-            categoryKey: "Categoria Ita",
+            code: "it",
+
+            categoryKey:
+                "Categoria Ita",
 
             secretKey:
                 "Il Segreto di Virgilio (Leggenda/Curiosità)",
@@ -67,17 +99,17 @@ const CONFIG = {
                 "Audio generato dalla sintesi vocale del dispositivo.",
 
             noVideo:
-                "Video non disponibile.",
+                "Video non disponibile."
 
-            noAudio:
-                "Audio non disponibile."
         },
 
-        en: {
-            code: "en",
-            label: "English",
 
-            categoryKey: "Categoria Ing",
+        en: {
+
+            code: "en",
+
+            categoryKey:
+                "Categoria Ing",
 
             secretKey:
                 "The Secret of Virgil (Legend/Curiosity)",
@@ -104,20 +136,20 @@ const CONFIG = {
                 "■ Stop audio",
 
             audioNote:
-                "Audio generated using your device's speech synthesis.",
+                "Audio generated using the device's speech synthesis.",
 
             noVideo:
-                "Video not available.",
+                "Video not available."
 
-            noAudio:
-                "Audio not available."
         },
 
-        es: {
-            code: "es",
-            label: "Español",
 
-            categoryKey: "Categoria Sp",
+        es: {
+
+            code: "es",
+
+            categoryKey:
+                "Categoria Sp",
 
             secretKey:
                 "El secreto de Virgilio (Leyenda/Curiosidad)",
@@ -147,29 +179,17 @@ const CONFIG = {
                 "Audio generado mediante la síntesis de voz del dispositivo.",
 
             noVideo:
-                "Vídeo no disponible.",
+                "Vídeo no disponible."
 
-            noAudio:
-                "Audio no disponible."
         }
-    },
 
-    /* Velocità del cursore.
-       Maggiore = più veloce.
-    */
-    cursorSpeed:
-        0.00025,
+    }
 
-    /* Pausa automatica quando il cursore
-       arriva a un monumento.
-    */
-    pauseAtMonument:
-        1200
 };
 
 
 /* ============================================================
-   VARIABILI GLOBALI
+   VARIABILI
 ============================================================ */
 
 let monumenti = [];
@@ -180,9 +200,9 @@ let currentLanguage = "it";
 
 let selectedMonument = null;
 
-let routeIndex = 0;
-
 let cursorMarker = null;
+
+let routeIndex = 0;
 
 let animationFrame = null;
 
@@ -196,6 +216,10 @@ let segmentProgress = 0;
 
 let pauseUntil = 0;
 
+let speechUtterance = null;
+
+let speechPlaying = false;
+
 
 /* ============================================================
    ELEMENTI HTML
@@ -203,48 +227,114 @@ let pauseUntil = 0;
 
 const elements = {
 
-    map: null,
+    map:
+        document.getElementById("map"),
 
-    languageSelect: null,
+    languageSelect:
+        document.getElementById("language-select"),
 
-    monumentPanel: null,
+    monumentPanel:
+        document.getElementById("monument-panel"),
 
-    closePanel: null,
+    closePanel:
+        document.getElementById("close-panel"),
 
-    monumentName: null,
+    monumentName:
+        document.getElementById("monument-name"),
 
-    monumentCategory: null,
+    monumentCategory:
+        document.getElementById("monument-category"),
 
-    monumentSecret: null,
+    monumentSecret:
+        document.getElementById("monument-secret"),
 
-    monumentMore: null,
+    monumentMore:
+        document.getElementById("monument-more"),
 
-    secretTitle: null,
+    secretTitle:
+        document.getElementById("secret-title"),
 
-    moreTitle: null,
+    moreTitle:
+        document.getElementById("more-title"),
 
-    audioTitle: null,
+    audioTitle:
+        document.getElementById("audio-title"),
 
-    videoTitle: null,
+    videoTitle:
+        document.getElementById("video-title"),
 
-    audioContainer: null,
+    audioContainer:
+        document.getElementById("audio-container"),
 
-    videoContainer: null,
+    videoContainer:
+        document.getElementById("video-container"),
 
-    startButton: null,
+    startButton:
+        document.getElementById("start-button"),
 
-    pauseButton: null,
+    pauseButton:
+        document.getElementById("pause-button"),
 
-    resetButton: null,
+    resetButton:
+        document.getElementById("reset-button"),
 
-    routeStatusPosition: null,
+    routeStatusPosition:
+        document.getElementById("route-status-position"),
 
-    loadingScreen: null
+    loadingScreen:
+        document.getElementById("loading-screen")
+
 };
 
 
 /* ============================================================
-   ICONA PIN BLU
+   MAPPA
+
+   IMPORTANTISSIMO:
+   NON utilizziamo fitBounds().
+
+   La mappa deve rimanere centrata su
+   A casa di Francesca all'apertura.
+============================================================ */
+
+const map = L.map(
+    "map",
+    {
+        zoomControl: true,
+
+        preferCanvas: true
+    }
+).setView(
+
+    CONFIG.mapCenter,
+
+    CONFIG.defaultZoom
+
+);
+
+
+/* ============================================================
+   CARTOGRAFIA
+============================================================ */
+
+L.tileLayer(
+
+    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+
+    {
+
+        maxZoom: 19,
+
+        attribution:
+            '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>'
+
+    }
+
+).addTo(map);
+
+
+/* ============================================================
+   PIN BLU
 ============================================================ */
 
 const blueIcon = L.icon({
@@ -274,11 +364,12 @@ const blueIcon = L.icon({
         41,
         41
     ]
+
 });
 
 
 /* ============================================================
-   ICONA PIN ROSSA
+   PIN ROSSO
 ============================================================ */
 
 const redIcon = L.icon({
@@ -308,11 +399,12 @@ const redIcon = L.icon({
         41,
         41
     ]
+
 });
 
 
 /* ============================================================
-   ICONA DEL CURSORE VIRGILIO
+   ICONA CURSORE VIRGILIO
 ============================================================ */
 
 const cursorIcon = L.divIcon({
@@ -324,127 +416,20 @@ const cursorIcon = L.divIcon({
         '<div class="virgilio-cursor">V</div>',
 
     iconSize: [
-        34,
-        34
+        36,
+        36
     ],
 
     iconAnchor: [
-        17,
-        17
+        18,
+        18
     ]
+
 });
 
 
 /* ============================================================
-   CREAZIONE MAPPA
-============================================================ */
-
-const map = L.map("map", {
-
-    zoomControl: true,
-
-    preferCanvas: true
-
-}).setView(
-
-    CONFIG.mapCenter,
-
-    CONFIG.defaultZoom
-
-);
-
-
-/* ============================================================
-   MAPPA OPENSTREETMAP
-============================================================ */
-
-L.tileLayer(
-
-    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-
-    {
-
-        maxZoom: 19,
-
-        attribution:
-            '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>'
-
-    }
-
-).addTo(map);
-
-
-/* ============================================================
-   INIZIALIZZAZIONE DOM
-============================================================ */
-
-function inizializzaElementi() {
-
-    elements.map =
-        document.getElementById("map");
-
-    elements.languageSelect =
-        document.getElementById("language-select");
-
-    elements.monumentPanel =
-        document.getElementById("monument-panel");
-
-    elements.closePanel =
-        document.getElementById("close-panel");
-
-    elements.monumentName =
-        document.getElementById("monument-name");
-
-    elements.monumentCategory =
-        document.getElementById("monument-category");
-
-    elements.monumentSecret =
-        document.getElementById("monument-secret");
-
-    elements.monumentMore =
-        document.getElementById("monument-more");
-
-    elements.secretTitle =
-        document.getElementById("secret-title");
-
-    elements.moreTitle =
-        document.getElementById("more-title");
-
-    elements.audioTitle =
-        document.getElementById("audio-title");
-
-    elements.videoTitle =
-        document.getElementById("video-title");
-
-    elements.audioContainer =
-        document.getElementById("audio-container");
-
-    elements.videoContainer =
-        document.getElementById("video-container");
-
-    elements.startButton =
-        document.getElementById("start-button");
-
-    elements.pauseButton =
-        document.getElementById("pause-button");
-
-    elements.resetButton =
-        document.getElementById("reset-button");
-
-    elements.routeStatusPosition =
-        document.getElementById(
-            "route-status-position"
-        );
-
-    elements.loadingScreen =
-        document.getElementById(
-            "loading-screen"
-        );
-}
-
-
-/* ============================================================
-   UTILITÀ
+   UTILITY
 ============================================================ */
 
 function escapeHtml(value) {
@@ -453,43 +438,72 @@ function escapeHtml(value) {
         value === null ||
         value === undefined
     ) {
+
         return "";
+
     }
 
+
     return String(value)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
+
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+
+        .replace(
+            /</g,
+            "&lt;"
+        )
+
+        .replace(
+            />/g,
+            "&gt;"
+        )
+
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+
 }
 
 
 /* ============================================================
-   OTTIENI NOME
+   NOME MONUMENTO
 ============================================================ */
 
 function getNome(monumento) {
 
-    return monumento["Nome Luogo"] || "";
+    return (
+        monumento["Nome Luogo"] ||
+        ""
+    );
+
 }
 
 
 /* ============================================================
-   OTTIENI COORDINATE
+   COORDINATE
 ============================================================ */
 
 function getCoordinate(monumento) {
 
     const lat =
         parseFloat(
-            monumento.Lat
+            monumento["Lat"]
         );
 
     const lng =
         parseFloat(
-            monumento.Long
+            monumento["Long"]
         );
+
 
     if (
         Number.isFinite(lat) &&
@@ -497,35 +511,46 @@ function getCoordinate(monumento) {
     ) {
 
         return {
-            lat,
-            lng
+
+            lat: lat,
+
+            lng: lng
+
         };
 
     }
 
+
     return null;
+
 }
 
 
 /* ============================================================
-   CONTROLLO FRANCESCA
+   CONTROLLO A CASA DI FRANCESCA
 ============================================================ */
 
 function isFrancesca(monumento) {
 
-    const nome =
-        getNome(monumento)
-            .trim()
-            .toLowerCase();
-
     return (
-        nome === "a casa di francesca"
+
+        getNome(monumento)
+
+            .trim()
+
+            .toLowerCase()
+
+            ===
+
+            "a casa di francesca"
+
     );
+
 }
 
 
 /* ============================================================
-   OTTIENI TESTO IN BASE ALLA LINGUA
+   DATI LOCALIZZATI
 ============================================================ */
 
 function getLocalizedData(monumento) {
@@ -534,6 +559,36 @@ function getLocalizedData(monumento) {
         CONFIG.languages[
             currentLanguage
         ];
+
+
+    let secret =
+        monumento[
+            language.secretKey
+        ];
+
+
+    /* ========================================================
+       CORREZIONE DEL CAMPO INGLESE DI PORTA NAPOLI
+
+       Nel JSON attuale è presente:
+       "TheSecret of Virgil..."
+
+       anziché:
+       "The Secret of Virgil..."
+    ======================================================== */
+
+    if (
+        currentLanguage === "en" &&
+        !secret
+    ) {
+
+        secret =
+            monumento[
+                "TheSecret of Virgil (Legend/Curiosity)"
+            ];
+
+    }
+
 
     return {
 
@@ -546,9 +601,7 @@ function getLocalizedData(monumento) {
             ] || "",
 
         secret:
-            monumento[
-                language.secretKey
-            ] || "",
+            secret || "",
 
         more:
             monumento[
@@ -556,7 +609,9 @@ function getLocalizedData(monumento) {
             ] || "",
 
         video:
-            monumento["Video"] || "",
+            monumento[
+                "Video"
+            ] || "",
 
         audio:
             getAudioUrl(
@@ -565,17 +620,21 @@ function getLocalizedData(monumento) {
             )
 
     };
+
 }
 
 
 /* ============================================================
    AUDIO
 
-   Il codice cerca prima eventuali campi audio
-   presenti nel JSON.
+   Il JSON attuale non contiene ancora i 105 MP3.
 
-   Se non esistono, utilizza la sintesi vocale
-   del browser.
+   Il codice è comunque già predisposto per usarli.
+
+   Quando aggiungeremo i percorsi degli MP3 al JSON,
+   verranno utilizzati automaticamente.
+
+   In assenza di MP3 viene utilizzata la sintesi vocale.
 ============================================================ */
 
 function getAudioUrl(
@@ -583,41 +642,41 @@ function getAudioUrl(
     language
 ) {
 
-    const possibleKeys = {
+    const keys = {
 
         it: [
             "Audio Ita",
             "Audio IT",
             "Audio Italiano",
-            "audio_ita",
-            "audio_it"
+            "audio_it",
+            "audio_ita"
         ],
 
         en: [
             "Audio Ing",
             "Audio EN",
             "Audio English",
-            "audio_eng",
-            "audio_en"
+            "audio_en",
+            "audio_eng"
         ],
 
         es: [
             "Audio Sp",
             "Audio ES",
             "Audio Español",
-            "audio_esp",
-            "audio_es"
+            "audio_es",
+            "audio_esp"
         ]
 
     };
 
 
-    const keys =
-        possibleKeys[language] || [];
+    const possibleKeys =
+        keys[language] || [];
 
 
     for (
-        const key of keys
+        const key of possibleKeys
     ) {
 
         if (
@@ -637,37 +696,64 @@ function getAudioUrl(
 
 
     return "";
+
 }
 
 
 /* ============================================================
-   CREAZIONE MARKER
+   CREAZIONE DEI 35 PIN
 ============================================================ */
 
 function creaMarkers() {
 
     markers.forEach(
-        marker => map.removeLayer(marker)
+
+        marker => {
+
+            map.removeLayer(
+                marker
+            );
+
+        }
+
     );
+
 
     markers = [];
 
 
     monumenti.forEach(
 
-        (monumento, index) => {
+        (
+            monumento,
+            index
+        ) => {
 
             const coordinate =
-                getCoordinate(monumento);
+                getCoordinate(
+                    monumento
+                );
+
 
             if (!coordinate) {
+
                 return;
+
             }
 
 
+            /* -----------------------------------------------
+               Francesca = ROSSO
+               Tutti gli altri = BLU
+            ------------------------------------------------ */
+
             const icon =
-                isFrancesca(monumento)
+                isFrancesca(
+                    monumento
+                )
+
                     ? redIcon
+
                     : blueIcon;
 
 
@@ -680,7 +766,7 @@ function creaMarkers() {
                     ],
 
                     {
-                        icon
+                        icon: icon
                     }
 
                 ).addTo(map);
@@ -689,12 +775,19 @@ function creaMarkers() {
             marker.monumento =
                 monumento;
 
+
             marker.routeIndex =
                 index;
 
 
+            /* -----------------------------------------------
+               CLICK PIN
+            ------------------------------------------------ */
+
             marker.on(
+
                 "click",
+
                 () => {
 
                     apriScheda(
@@ -702,89 +795,130 @@ function creaMarkers() {
                     );
 
                 }
+
             );
 
+
+            /* -----------------------------------------------
+               TOOLTIP
+            ------------------------------------------------ */
 
             marker.bindTooltip(
 
                 escapeHtml(
-                    getNome(monumento)
+                    getNome(
+                        monumento
+                    )
                 ),
 
                 {
+
                     direction: "top",
 
                     offset: [
                         0,
                         -35
                     ]
+
                 }
 
             );
 
 
-            markers.push(marker);
+            markers.push(
+                marker
+            );
 
         }
 
     );
+
 }
 
 
 /* ============================================================
-   ADATTA LA MAPPA AI 35 PUNTI
+   CREA CURSORE
 ============================================================ */
 
-function adattaMappa() {
-
-    const coordinates =
-        monumenti
-
-            .map(
-                getCoordinate
-            )
-
-            .filter(
-                Boolean
-            )
-
-            .map(
-                coordinate => [
-                    coordinate.lat,
-                    coordinate.lng
-                ]
-            );
-
+function creaCursore() {
 
     if (
-        coordinates.length === 0
+        cursorMarker
     ) {
-        return;
+
+        map.removeLayer(
+            cursorMarker
+        );
+
     }
 
 
-    const bounds =
-        L.latLngBounds(
-            coordinates
+    if (
+        monumenti.length === 0
+    ) {
+
+        return;
+
+    }
+
+
+    /*
+       Il cursore parte dal primo monumento
+       dell'ordine presente nel JSON.
+    */
+
+    const first =
+        getCoordinate(
+            monumenti[0]
         );
 
 
-    map.fitBounds(
-        bounds,
-        {
+    if (!first) {
 
-            padding: [
-                50,
-                50
-            ]
+        return;
 
-        }
-    );
+    }
+
+
+    cursorMarker =
+        L.marker(
+
+            [
+                first.lat,
+                first.lng
+            ],
+
+            {
+
+                icon:
+                    cursorIcon,
+
+                zIndexOffset:
+                    1000,
+
+                interactive:
+                    false
+
+            }
+
+        ).addTo(map);
+
+
+    routeIndex = 0;
+
+    segmentStart = null;
+
+    segmentEnd = null;
+
+    segmentProgress = 0;
+
+    aggiornaStatoPercorso();
+
 }
 
 
 /* ============================================================
-   SCHEDA MONUMENTO
+   APERTURA SCHEDA
 ============================================================ */
 
 function apriScheda(monumento) {
@@ -798,7 +932,9 @@ function apriScheda(monumento) {
 
     elements.monumentPanel
         .classList
-        .remove("hidden");
+        .remove(
+            "hidden"
+        );
 
 
     elements.monumentPanel
@@ -811,14 +947,16 @@ function apriScheda(monumento) {
 
 
 /* ============================================================
-   CHIUDI SCHEDA
+   CHIUSURA SCHEDA
 ============================================================ */
 
 function chiudiScheda() {
 
     elements.monumentPanel
         .classList
-        .add("hidden");
+        .add(
+            "hidden"
+        );
 
 
     elements.monumentPanel
@@ -843,8 +981,12 @@ function chiudiScheda() {
 
 function aggiornaScheda() {
 
-    if (!selectedMonument) {
+    if (
+        !selectedMonument
+    ) {
+
         return;
+
     }
 
 
@@ -917,11 +1059,6 @@ function aggiornaScheda() {
    AUDIO
 ============================================================ */
 
-let speechUtterance = null;
-
-let speechPlaying = false;
-
-
 function creaAudio(
     monumento,
     audioUrl
@@ -937,58 +1074,50 @@ function creaAudio(
         .innerHTML = "";
 
 
-    /* --------------------------------------------------------
-       CASO 1:
-       ESISTE UN FILE AUDIO REALE
-    -------------------------------------------------------- */
+    /* ========================================================
+       SE ESISTE UN MP3 REALE
+    ======================================================== */
 
-    if (audioUrl) {
-
-        const wrapper =
-            document.createElement(
-                "div"
-            );
-
-        wrapper.className =
-            "audio-player";
-
+    if (
+        audioUrl
+    ) {
 
         const audio =
             document.createElement(
                 "audio"
             );
 
+
         audio.controls =
             true;
+
 
         audio.preload =
             "none";
 
+
         audio.src =
             audioUrl;
 
-        audio.style.width =
-            "100%";
 
-
-        wrapper.appendChild(
-            audio
-        );
+        audio.className =
+            "audio-player";
 
 
         elements.audioContainer
             .appendChild(
-                wrapper
+                audio
             );
 
+
         return;
+
     }
 
 
-    /* --------------------------------------------------------
-       CASO 2:
-       USIAMO SINTESI VOCALE
-    -------------------------------------------------------- */
+    /* ========================================================
+       SINTESI VOCALE
+    ======================================================== */
 
     const button =
         document.createElement(
@@ -999,15 +1128,19 @@ function creaAudio(
     button.type =
         "button";
 
+
     button.className =
         "audio-button";
+
 
     button.textContent =
         language.playAudio;
 
 
     button.addEventListener(
+
         "click",
+
         () => {
 
             if (
@@ -1020,6 +1153,7 @@ function creaAudio(
                     language.playAudio;
 
                 return;
+
             }
 
 
@@ -1027,10 +1161,12 @@ function creaAudio(
                 monumento
             );
 
+
             button.textContent =
                 language.stopAudio;
 
         }
+
     );
 
 
@@ -1045,8 +1181,10 @@ function creaAudio(
             "div"
         );
 
+
     note.className =
         "audio-note";
+
 
     note.textContent =
         language.audioNote;
@@ -1056,11 +1194,12 @@ function creaAudio(
         .appendChild(
             note
         );
+
 }
 
 
 /* ============================================================
-   TESTO DA LEGGERE
+   TESTO PER SINTESI VOCALE
 ============================================================ */
 
 function getSpeechText(
@@ -1088,11 +1227,12 @@ function getSpeechText(
         )
 
         .join(". ");
+
 }
 
 
 /* ============================================================
-   SINTESI VOCALE
+   AVVIO SINTESI VOCALE
 ============================================================ */
 
 function speakMonument(
@@ -1100,7 +1240,10 @@ function speakMonument(
 ) {
 
     if (
-        !("speechSynthesis" in window)
+        !(
+            "speechSynthesis"
+            in window
+        )
     ) {
 
         alert(
@@ -1108,6 +1251,7 @@ function speakMonument(
         );
 
         return;
+
     }
 
 
@@ -1127,10 +1271,15 @@ function speakMonument(
 
 
     speechUtterance.lang =
+
         currentLanguage === "it"
+
             ? "it-IT"
+
             : currentLanguage === "en"
+
                 ? "en-US"
+
                 : "es-ES";
 
 
@@ -1179,17 +1328,19 @@ function speakMonument(
         .speak(
             speechUtterance
         );
+
 }
 
 
 /* ============================================================
-   FERMA AUDIO
+   FERMA SINTESI
 ============================================================ */
 
 function stopSpeech() {
 
     if (
-        "speechSynthesis" in window
+        "speechSynthesis"
+        in window
     ) {
 
         window.speechSynthesis
@@ -1200,6 +1351,7 @@ function stopSpeech() {
 
     speechPlaying =
         false;
+
 }
 
 
@@ -1230,8 +1382,10 @@ function creaVideo(
                 "p"
             );
 
+
         message.className =
             "no-media";
+
 
         message.textContent =
             language.noVideo;
@@ -1242,7 +1396,9 @@ function creaVideo(
                 message
             );
 
+
         return;
+
     }
 
 
@@ -1252,16 +1408,19 @@ function creaVideo(
         );
 
 
-    /* --------------------------------------------------------
-       VIDEO YOUTUBE
-    -------------------------------------------------------- */
+    /* ========================================================
+       YOUTUBE
+    ======================================================== */
 
-    if (youtubeId) {
+    if (
+        youtubeId
+    ) {
 
         const iframe =
             document.createElement(
                 "iframe"
             );
+
 
         iframe.className =
             "video-frame";
@@ -1273,7 +1432,7 @@ function creaVideo(
 
 
         iframe.title =
-            "YouTube video";
+            "Virgilio video";
 
 
         iframe.loading =
@@ -1293,13 +1452,15 @@ function creaVideo(
                 iframe
             );
 
+
         return;
+
     }
 
 
-    /* --------------------------------------------------------
-       LINK VIDEO GENERICO
-    -------------------------------------------------------- */
+    /* ========================================================
+       LINK VIDEO
+    ======================================================== */
 
     const link =
         document.createElement(
@@ -1332,6 +1493,7 @@ function creaVideo(
         .appendChild(
             link
         );
+
 }
 
 
@@ -1346,7 +1508,9 @@ function getYoutubeId(
     if (
         !url
     ) {
+
         return null;
+
     }
 
 
@@ -1359,6 +1523,7 @@ function getYoutubeId(
 
 
         /* youtube.com/watch?v= */
+
         if (
             parsed.hostname
                 .includes(
@@ -1368,28 +1533,41 @@ function getYoutubeId(
 
             const id =
                 parsed.searchParams
-                    .get("v");
+                    .get(
+                        "v"
+                    );
 
-            if (id) {
+
+            if (
+                id
+            ) {
+
                 return id;
+
             }
 
+
             /* youtube.com/embed/ID */
-            const embedMatch =
+
+            const match =
                 parsed.pathname.match(
                     /\/embed\/([^/?]+)/
                 );
 
+
             if (
-                embedMatch
+                match
             ) {
-                return embedMatch[1];
+
+                return match[1];
+
             }
 
         }
 
 
         /* youtu.be/ID */
+
         if (
             parsed.hostname ===
             "youtu.be"
@@ -1403,7 +1581,11 @@ function getYoutubeId(
 
         }
 
-    } catch (error) {
+    }
+
+    catch (
+        error
+    ) {
 
         console.warn(
             "URL video non valida:",
@@ -1414,83 +1596,12 @@ function getYoutubeId(
 
 
     return null;
+
 }
 
 
 /* ============================================================
-   CREAZIONE CURSORE
-============================================================ */
-
-function creaCursore() {
-
-    if (cursorMarker) {
-
-        map.removeLayer(
-            cursorMarker
-        );
-
-    }
-
-
-    if (
-        monumenti.length === 0
-    ) {
-        return;
-    }
-
-
-    const first =
-        getCoordinate(
-            monumenti[0]
-        );
-
-
-    if (!first) {
-        return;
-    }
-
-
-    cursorMarker =
-        L.marker(
-
-            [
-                first.lat,
-                first.lng
-            ],
-
-            {
-                icon:
-                    cursorIcon,
-
-                zIndexOffset:
-                    1000,
-
-                interactive:
-                    false
-            }
-
-        ).addTo(map);
-
-
-    routeIndex =
-        0;
-
-    segmentStart =
-        null;
-
-    segmentEnd =
-        null;
-
-    segmentProgress =
-        0;
-
-
-    aggiornaStatoPercorso();
-}
-
-
-/* ============================================================
-   INTERPOLAZIONE POSIZIONE
+   INTERPOLAZIONE
 ============================================================ */
 
 function interpolate(
@@ -1516,7 +1627,9 @@ function interpolate(
                 start.lng
             ) *
             progress
+
     };
+
 }
 
 
@@ -1532,7 +1645,11 @@ function animateCursor(
         !animationRunning
     ) {
 
+        animationFrame =
+            null;
+
         return;
+
     }
 
 
@@ -1543,13 +1660,17 @@ function animateCursor(
         animationRunning =
             false;
 
+        animationFrame =
+            null;
+
         return;
+
     }
 
 
-    /* --------------------------------------------------------
-       PAUSA AUTOMATICA
-    -------------------------------------------------------- */
+    /* ========================================================
+       PAUSA
+    ======================================================== */
 
     if (
         pauseUntil &&
@@ -1562,16 +1683,38 @@ function animateCursor(
             );
 
         return;
+
     }
 
 
-    pauseUntil =
-        0;
+    pauseUntil = 0;
 
 
-    /* --------------------------------------------------------
-       CREIAMO IL SEGMENTO
-    -------------------------------------------------------- */
+    /* ========================================================
+       FINE PERCORSO
+    ======================================================== */
+
+    if (
+        routeIndex >=
+        monumenti.length - 1
+    ) {
+
+        animationRunning =
+            false;
+
+        animationFrame =
+            null;
+
+        aggiornaStatoPercorso();
+
+        return;
+
+    }
+
+
+    /* ========================================================
+       CREA SEGMENTO
+    ======================================================== */
 
     if (
         !segmentStart ||
@@ -1586,28 +1729,10 @@ function animateCursor(
             );
 
 
-        const nextIndex =
-            routeIndex + 1;
-
-
-        if (
-            nextIndex >=
-            monumenti.length
-        ) {
-
-            animationRunning =
-                false;
-
-            aggiornaStatoPercorso();
-
-            return;
-        }
-
-
         const next =
             getCoordinate(
                 monumenti[
-                    nextIndex
+                    routeIndex + 1
                 ]
             );
 
@@ -1617,8 +1742,7 @@ function animateCursor(
             !next
         ) {
 
-            routeIndex =
-                nextIndex;
+            routeIndex++;
 
             segmentStart =
                 null;
@@ -1626,29 +1750,36 @@ function animateCursor(
             segmentEnd =
                 null;
 
+            segmentProgress =
+                0;
+
             animationFrame =
                 requestAnimationFrame(
                     animateCursor
                 );
 
             return;
+
         }
 
 
         segmentStart =
             current;
 
+
         segmentEnd =
             next;
 
+
         segmentProgress =
             0;
+
     }
 
 
-    /* --------------------------------------------------------
+    /* ========================================================
        MOVIMENTO
-    -------------------------------------------------------- */
+    ======================================================== */
 
     segmentProgress +=
         CONFIG.cursorSpeed;
@@ -1660,6 +1791,7 @@ function animateCursor(
 
         segmentProgress =
             1;
+
 
         const finalPosition =
             interpolate(
@@ -1674,14 +1806,16 @@ function animateCursor(
 
 
         cursorMarker.setLatLng(
+
             [
                 finalPosition.lat,
                 finalPosition.lng
             ]
+
         );
 
 
-        routeIndex += 1;
+        routeIndex++;
 
 
         segmentStart =
@@ -1697,23 +1831,19 @@ function animateCursor(
         aggiornaStatoPercorso();
 
 
-        /* ----------------------------------------------------
-           APRIAMO AUTOMATICAMENTE IL MONUMENTO RAGGIUNTO
-        ---------------------------------------------------- */
+        /* ====================================================
+           APRE LA SCHEDA DEL MONUMENTO RAGGIUNTO
+        ==================================================== */
 
         if (
             routeIndex <
             monumenti.length
         ) {
 
-            const monumento =
+            apriScheda(
                 monumenti[
                     routeIndex
-                ];
-
-
-            apriScheda(
-                monumento
+                ]
             );
 
 
@@ -1724,7 +1854,9 @@ function animateCursor(
         }
 
 
-    } else {
+    }
+
+    else {
 
         const position =
             interpolate(
@@ -1754,6 +1886,7 @@ function animateCursor(
         requestAnimationFrame(
             animateCursor
         );
+
 }
 
 
@@ -1766,9 +1899,13 @@ function startRoute() {
     if (
         monumenti.length < 2
     ) {
+
         return;
+
     }
 
+
+    /* Se siamo alla fine, ricominciamo */
 
     if (
         routeIndex >=
@@ -1829,7 +1966,7 @@ function pauseRoute() {
 
 
 /* ============================================================
-   RESET
+   RICOMINCIA
 ============================================================ */
 
 function resetRoute() {
@@ -1844,36 +1981,39 @@ function resetRoute() {
     segmentStart =
         null;
 
+
     segmentEnd =
         null;
 
+
     segmentProgress =
         0;
+
 
     pauseUntil =
         0;
 
 
     if (
+        cursorMarker &&
         monumenti.length > 0
     ) {
 
-        const coordinate =
+        const first =
             getCoordinate(
                 monumenti[0]
             );
 
 
         if (
-            coordinate &&
-            cursorMarker
+            first
         ) {
 
             cursorMarker.setLatLng(
 
                 [
-                    coordinate.lat,
-                    coordinate.lng
+                    first.lat,
+                    first.lng
                 ]
 
             );
@@ -1884,6 +2024,7 @@ function resetRoute() {
 
 
     aggiornaStatoPercorso();
+
 
     chiudiScheda();
 
@@ -1899,7 +2040,9 @@ function aggiornaStatoPercorso() {
     if (
         !elements.routeStatusPosition
     ) {
+
         return;
+
     }
 
 
@@ -1907,21 +2050,14 @@ function aggiornaStatoPercorso() {
         monumenti.length;
 
 
-    let current =
-        routeIndex;
+    const current =
+        Math.min(
 
+            routeIndex + 1,
 
-    if (
-        total > 0
-    ) {
+            total
 
-        current =
-            Math.min(
-                routeIndex + 1,
-                total
-            );
-
-    }
+        );
 
 
     elements.routeStatusPosition
@@ -1948,6 +2084,7 @@ function cambiaLingua(
     ) {
 
         return;
+
     }
 
 
@@ -1955,17 +2092,12 @@ function cambiaLingua(
         language;
 
 
-    document.documentElement
-        .lang =
+    document.documentElement.lang =
         language;
 
 
     stopSpeech();
 
-
-    /* --------------------------------------------------------
-       AGGIORNA LA SCHEDA APERTA
-    -------------------------------------------------------- */
 
     if (
         selectedMonument
@@ -1976,9 +2108,7 @@ function cambiaLingua(
     }
 
 
-    /* --------------------------------------------------------
-       AGGIORNA TOOLTIP
-    -------------------------------------------------------- */
+    /* Aggiorna i nomi dei pin */
 
     markers.forEach(
 
@@ -2008,7 +2138,7 @@ function cambiaLingua(
 
 
 /* ============================================================
-   CARICAMENTO JSON
+   CARICA JSON
 ============================================================ */
 
 async function caricaMonumenti() {
@@ -2029,8 +2159,13 @@ async function caricaMonumenti() {
         ) {
 
             throw new Error(
-                "HTTP " +
-                response.status
+
+                "Impossibile caricare " +
+                CONFIG.jsonFile +
+                " (HTTP " +
+                response.status +
+                ")."
+
             );
 
         }
@@ -2045,7 +2180,7 @@ async function caricaMonumenti() {
         ) {
 
             throw new Error(
-                "Il JSON non contiene un array."
+                "Il file JSON non contiene un array valido."
             );
 
         }
@@ -2054,10 +2189,15 @@ async function caricaMonumenti() {
         monumenti =
             data.filter(
 
-                monumento =>
-                    getCoordinate(
-                        monumento
-                    ) !== null
+                monumento => {
+
+                    return (
+                        getCoordinate(
+                            monumento
+                        ) !== null
+                    );
+
+                }
 
             );
 
@@ -2067,7 +2207,7 @@ async function caricaMonumenti() {
         ) {
 
             throw new Error(
-                "Nessun monumento con coordinate valide."
+                "Non è stato trovato nessun monumento con coordinate valide."
             );
 
         }
@@ -2080,32 +2220,92 @@ async function caricaMonumenti() {
         );
 
 
+        /* ====================================================
+           CONTROLLO DEI 35 MONUMENTI
+        ==================================================== */
+
         if (
-            monumenti.length !== 35
+            monumenti.length !==
+            CONFIG.expectedMonuments
         ) {
 
             console.warn(
-                "Attenzione: il JSON contiene " +
+
+                "ATTENZIONE: il JSON contiene " +
                 monumenti.length +
-                " punti invece dei 35 previsti."
+                " monumenti. " +
+                "Sono previsti " +
+                CONFIG.expectedMonuments +
+                "."
+
             );
 
         }
 
 
+        /* ====================================================
+           CONTROLLO FRANCESCA
+        ==================================================== */
+
+        const francesca =
+            monumenti.find(
+                isFrancesca
+            );
+
+
+        if (
+            !francesca
+        ) {
+
+            console.warn(
+                "A casa di Francesca non è stata trovata nel JSON."
+            );
+
+        }
+
+
+        /* ====================================================
+           CREA PIN
+        ==================================================== */
+
         creaMarkers();
 
-        adattaMappa();
+
+        /* ====================================================
+           CREA CURSORE
+        ==================================================== */
 
         creaCursore();
+
+
+        /* ====================================================
+           IMPORTANTISSIMO:
+           NON fare fitBounds.
+
+           La mappa deve rimanere centrata su
+           A casa di Francesca.
+        ==================================================== */
+
+        map.setView(
+
+            CONFIG.mapCenter,
+
+            CONFIG.defaultZoom
+
+        );
+
 
         nascondiLoading();
 
 
-    } catch (error) {
+    }
+
+    catch (
+        error
+    ) {
 
         console.error(
-            "Errore caricamento monumenti:",
+            "Errore:",
             error
         );
 
@@ -2127,13 +2327,15 @@ function nascondiLoading() {
 
     elements.loadingScreen
         .classList
-        .add("hidden");
+        .add(
+            "hidden"
+        );
 
 }
 
 
 /* ============================================================
-   ERRORE CARICAMENTO
+   MOSTRA ERRORE
 ============================================================ */
 
 function mostraErroreCaricamento(
@@ -2155,7 +2357,10 @@ function mostraErroreCaricamento(
                         monumenti_lecce.json
                     </strong>
                     si trovi nella stessa cartella
-                    di index.html.
+                    di
+                    <strong>
+                        index.html
+                    </strong>.
                 </p>
 
                 <p>
@@ -2177,7 +2382,9 @@ function mostraErroreCaricamento(
 
 function collegaEventi() {
 
-    /* LINGUA */
+    /* ========================================================
+       CAMBIO LINGUA
+    ======================================================== */
 
     elements.languageSelect
         .addEventListener(
@@ -2195,7 +2402,9 @@ function collegaEventi() {
         );
 
 
-    /* CHIUDI SCHEDA */
+    /* ========================================================
+       CHIUDI SCHEDA
+    ======================================================== */
 
     elements.closePanel
         .addEventListener(
@@ -2207,7 +2416,9 @@ function collegaEventi() {
         );
 
 
-    /* AVVIA */
+    /* ========================================================
+       AVVIA
+    ======================================================== */
 
     elements.startButton
         .addEventListener(
@@ -2219,7 +2430,9 @@ function collegaEventi() {
         );
 
 
-    /* PAUSA */
+    /* ========================================================
+       PAUSA
+    ======================================================== */
 
     elements.pauseButton
         .addEventListener(
@@ -2231,7 +2444,9 @@ function collegaEventi() {
         );
 
 
-    /* RESET */
+    /* ========================================================
+       RICOMINCIA
+    ======================================================== */
 
     elements.resetButton
         .addEventListener(
@@ -2243,7 +2458,9 @@ function collegaEventi() {
         );
 
 
-    /* ESC PER CHIUDERE */
+    /* ========================================================
+       ESC = CHIUDI SCHEDA
+    ======================================================== */
 
     document.addEventListener(
 
@@ -2267,7 +2484,7 @@ function collegaEventi() {
 
 
 /* ============================================================
-   AVVIO APPLICAZIONE
+   AVVIO
 ============================================================ */
 
 document.addEventListener(
@@ -2275,8 +2492,6 @@ document.addEventListener(
     "DOMContentLoaded",
 
     async () => {
-
-        inizializzaElementi();
 
         collegaEventi();
 
