@@ -2,8 +2,10 @@
     box-sizing: border-box;
 }
 
+
 html,
 body {
+
     width: 100%;
     height: 100%;
 
@@ -18,9 +20,11 @@ body {
         sans-serif;
 }
 
+
 body {
     background: #eeeeee;
 }
+
 
 
 /* =====================================================
@@ -28,6 +32,7 @@ body {
    ===================================================== */
 
 #map {
+
     position: fixed;
 
     inset: 0;
@@ -39,11 +44,13 @@ body {
 }
 
 
+
 /* =====================================================
    INTESTAZIONE
    ===================================================== */
 
 #app-header {
+
     position: fixed;
 
     top: 15px;
@@ -51,12 +58,10 @@ body {
 
     z-index: 1000;
 
-    /*
-     * Lascia spazio alla selezione lingue.
-     */
     width: auto;
 
-    max-width: calc(100% - 180px);
+    max-width:
+        calc(100% - 180px);
 
     padding: 12px 16px;
 
@@ -72,7 +77,9 @@ body {
     color: #222;
 }
 
+
 .header-title {
+
     font-size: 20px;
 
     font-weight: 700;
@@ -82,7 +89,9 @@ body {
     color: #9f3d2d;
 }
 
+
 .header-address {
+
     font-size: 13px;
 
     line-height: 1.35;
@@ -90,7 +99,9 @@ body {
     color: #9f3d2d;
 }
 
+
 .header-phone {
+
     margin-top: 2px;
 
     font-size: 13px;
@@ -99,11 +110,13 @@ body {
 }
 
 
+
 /* =====================================================
    LINGUE
    ===================================================== */
 
 #language-selector {
+
     position: fixed;
 
     top: 15px;
@@ -127,7 +140,9 @@ body {
         rgba(0, 0, 0, 0.22);
 }
 
+
 .language-btn {
+
     border: 0;
 
     background: transparent;
@@ -145,32 +160,46 @@ body {
     color: #9f3d2d;
 }
 
+
 .language-btn.active {
+
     background: #9f3d2d;
 
     color: white;
 }
 
+
 .language-btn:active {
+
     transform: scale(0.95);
 }
+
 
 
 /* =====================================================
    ZOOM LEAFLET
    ===================================================== */
 
-.leaflet-bottom.leaflet-left {
+/*
+ * ORA LO ZOOM È A DESTRA.
+ *
+ * L'altezza rimane la stessa di prima.
+ */
+
+.leaflet-bottom.leaflet-right {
+
     bottom:
         calc(
             100px +
             env(safe-area-inset-bottom)
         );
 
-    left: 10px;
+    right: 10px;
 }
 
+
 .leaflet-control-zoom {
+
     margin: 0 !important;
 
     border: none !important;
@@ -180,7 +209,9 @@ body {
         rgba(0, 0, 0, 0.28) !important;
 }
 
+
 .leaflet-control-zoom a {
+
     width: 42px !important;
     height: 42px !important;
 
@@ -190,11 +221,13 @@ body {
 }
 
 
+
 /* =====================================================
    CONTROLLI AUDIO
    ===================================================== */
 
 #audio-controls {
+
     position: fixed;
 
     left: 14px;
@@ -214,7 +247,9 @@ body {
     gap: 8px;
 }
 
+
 .audio-control {
+
     width: 48px;
     height: 48px;
 
@@ -234,9 +269,12 @@ body {
     cursor: pointer;
 }
 
+
 .audio-control:active {
+
     transform: scale(0.93);
 }
+
 
 
 /* =====================================================
@@ -244,6 +282,7 @@ body {
    ===================================================== */
 
 #route-cursor {
+
     position: fixed;
 
     display: none;
@@ -267,11 +306,13 @@ body {
 }
 
 
+
 /* =====================================================
    POPUP
    ===================================================== */
 
 .modal {
+
     position: fixed;
 
     inset: 0;
@@ -281,6 +322,7 @@ body {
     display: flex;
 
     align-items: center;
+
     justify-content: center;
 
     padding: 20px;
@@ -289,9 +331,12 @@ body {
         rgba(0, 0, 0, 0.55);
 }
 
+
 .modal.hidden {
+
     display: none;
 }
+
 
 
 /* =====================================================
@@ -299,9 +344,11 @@ body {
    ===================================================== */
 
 .modal-content {
+
     position: relative;
 
-    width: min(620px, 100%);
+    width:
+        min(620px, 100%);
 
     max-height:
         calc(100vh - 40px);
@@ -320,7 +367,9 @@ body {
         rgba(0, 0, 0, 0.38);
 }
 
+
 .close-btn {
+
     position: absolute;
 
     top: 10px;
@@ -344,7 +393,14 @@ body {
     cursor: pointer;
 }
 
+
+
+/* =====================================================
+   NOME MONUMENTO
+   ===================================================== */
+
 #place-name {
+
     margin:
         0 48px 28px 0;
 
@@ -352,8 +408,14 @@ body {
 
     line-height: 1.2;
 
-    color: #222;
+    /*
+     * STESSO COLORE DI
+     * "SCOPRI DI PIÙ"
+     */
+
+    color: #9f3d2d;
 }
+
 
 
 /* =====================================================
@@ -361,10 +423,13 @@ body {
    ===================================================== */
 
 .place-section {
+
     margin-bottom: 27px;
 }
 
+
 .place-section h3 {
+
     margin:
         0 0 10px;
 
@@ -375,7 +440,9 @@ body {
     color: #222;
 }
 
+
 .place-text {
+
     font-size: 17px;
 
     line-height: 1.7;
@@ -392,53 +459,93 @@ body {
 }
 
 
+
 /* =====================================================
    SCOPRI DI PIÙ
    ===================================================== */
 
 .expandable-section {
+
     cursor: pointer;
 }
 
+
 .expand-title {
+
     cursor: pointer;
 
     color: #9f3d2d !important;
 }
 
+
 .more-text {
+
     transition:
         max-height 0.25s ease;
 }
 
+
 .more-text.collapsed {
+
     /*
-     * L'anteprima viene comunque generata
-     * da JavaScript.
+     * Il testo mostrato viene
+     * gestito da JavaScript.
      */
+
 }
 
+
 .more-hint {
+
     margin-top: 8px;
 
     font-size: 13px;
 
     font-style: italic;
 
+    /*
+     * STESSO COLORE
+     */
+
     color: #9f3d2d;
+
+    cursor: pointer;
 }
 
-.expandable-section.expanded
-.more-hint {
-    display: none;
-}
+
+/*
+ * IMPORTANTE:
+ * NON nascondiamo più il suggerimento
+ * quando il testo è aperto.
+ */
+
 
 
 /* =====================================================
    AUDIO
    ===================================================== */
 
+#audio-title {
+
+    /*
+     * STESSO COLORE DI
+     * "SCOPRI DI PIÙ"
+     */
+
+    color: #9f3d2d !important;
+
+    cursor: pointer;
+}
+
+
+.audio-title-clickable:active {
+
+    opacity: 0.7;
+}
+
+
 #audio-description {
+
     margin: 0;
 
     font-size: 15px;
@@ -449,15 +556,19 @@ body {
 }
 
 
+
 /* =====================================================
    VIDEO
    ===================================================== */
 
 #video-section.hidden {
+
     display: none;
 }
 
+
 .video-btn {
+
     width: 100%;
 
     padding: 15px 18px;
@@ -477,9 +588,12 @@ body {
     cursor: pointer;
 }
 
+
 .video-btn:active {
+
     transform: scale(0.98);
 }
+
 
 
 /* =====================================================
@@ -487,10 +601,12 @@ body {
    ===================================================== */
 
 .custom-marker {
+
     background: transparent;
 
     border: none;
 }
+
 
 
 /* =====================================================
@@ -499,7 +615,9 @@ body {
 
 @media (max-width: 600px) {
 
+
     #app-header {
+
         top: 10px;
         left: 10px;
 
@@ -512,46 +630,56 @@ body {
 
 
     .header-title {
+
         font-size: 16px;
     }
 
 
     .header-address,
     .header-phone {
+
         font-size: 11px;
     }
 
 
+
     #language-selector {
+
         top: 10px;
         right: 10px;
     }
 
 
     .language-btn {
-        padding: 7px 7px;
+
+        padding:
+            7px 7px;
 
         font-size: 11px;
     }
 
 
+
     /*
-     * ZOOM:
-     * abbastanza sopra la barra inferiore.
+     * ZOOM A DESTRA
+     *
+     * STESSA ALTEZZA DI PRIMA.
      */
 
-    .leaflet-bottom.leaflet-left {
+    .leaflet-bottom.leaflet-right {
+
         bottom:
             calc(
                 95px +
                 env(safe-area-inset-bottom)
             );
 
-        left: 10px;
+        right: 10px;
     }
 
 
     .leaflet-control-zoom a {
+
         width: 40px !important;
         height: 40px !important;
 
@@ -559,12 +687,13 @@ body {
     }
 
 
+
     /*
-     * AUDIO:
-     * ancora più in alto rispetto allo zoom.
+     * AUDIO
      */
 
     #audio-controls {
+
         left: 10px;
 
         bottom:
@@ -578,6 +707,7 @@ body {
 
 
     .audio-control {
+
         width: 44px;
         height: 44px;
 
@@ -585,11 +715,13 @@ body {
     }
 
 
+
     /*
      * POPUP
      */
 
     .modal {
+
         align-items: flex-end;
 
         padding: 0;
@@ -597,6 +729,7 @@ body {
 
 
     .modal-content {
+
         width: 100%;
 
         max-height: 90vh;
@@ -613,7 +746,9 @@ body {
     }
 
 
+
     #place-name {
+
         font-size: 23px;
 
         margin-bottom: 24px;
@@ -621,16 +756,19 @@ body {
 
 
     .place-section {
+
         margin-bottom: 24px;
     }
 
 
     .place-section h3 {
+
         font-size: 18px;
     }
 
 
     .place-text {
+
         font-size: 16px;
 
         line-height: 1.65;
@@ -638,6 +776,7 @@ body {
 
 
     .close-btn {
+
         width: 36px;
         height: 36px;
 
@@ -645,6 +784,7 @@ body {
     }
 
 }
+
 
 
 /* =====================================================
@@ -657,7 +797,9 @@ body {
     max-height: 700px
 ) {
 
-    .leaflet-bottom.leaflet-left {
+
+    .leaflet-bottom.leaflet-right {
+
         bottom:
             calc(
                 85px +
@@ -667,6 +809,7 @@ body {
 
 
     #audio-controls {
+
         bottom:
             calc(
                 155px +
@@ -676,6 +819,7 @@ body {
 
 
     .modal-content {
+
         max-height: 86vh;
     }
 
