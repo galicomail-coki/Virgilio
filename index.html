@@ -3,48 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Virgilio - Tour Concierge Lecce</title>
+    <title>Virgilio Tour Lecce</title>
     
     <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     
-    <!-- Il tuo CSS personalizzato -->
+    <!-- Il tuo foglio di stile opzionale -->
     <link rel="stylesheet" href="style.css">
-    
+
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; width: 100%; }
-        #map { height: 100vh; width: 100vw; }
-        .lang-container {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            z-index: 1000;
-            background: white;
-            padding: 5px 10px;
-            border-radius: 4px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-            font-family: sans-serif;
+        /* Assicura che la mappa occupi tutto lo schermo */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        #map {
+            width: 100%;
+            height: 100vh;
         }
     </style>
 </head>
 <body>
 
-    <!-- Selettore della lingua con ID corretto: lang-select -->
-    <div class="lang-container">
-        <select id="lang-select">
-            <option value="ita">Italiano</option>
-            <option value="ing">English</option>
-            <option value="sp">Español</option>
-        </select>
-    </div>
-
-    <!-- Contenitore della mappa -->
+    <!-- Contenitore della Mappa -->
     <div id="map"></div>
 
     <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     
-    <!-- Il tuo file JavaScript principale -->
+    <!-- Il tuo script principale -->
     <script src="app.js"></script>
 </body>
 </html>
