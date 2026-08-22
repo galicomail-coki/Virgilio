@@ -7,7 +7,9 @@ const DATA_URL = "monumenti_lecce.json";
 let monuments = [];
 let currentLanguage = "it";
 let currentMonument = null;
+
 let speechUtterance = null;
+let selectedVoice = null;
 
 let map;
 
@@ -18,7 +20,7 @@ let routePlaying = false;
 
 
 /* =========================================================
-   TRADUZIONI INTERFACCIA
+   TRADUZIONI
    ========================================================= */
 
 const translations = {
@@ -86,11 +88,11 @@ function initializeMap() {
 
 
     /*
-     * CONTROLLI ZOOM
-     * Posizionati in basso a sinistra.
+     * ZOOM
+     * Posizione gestita anche dal CSS.
      */
     L.control.zoom({
-        position: "bottomleft"
+        position: "bottomright"
     }).addTo(map);
 
 }
@@ -354,7 +356,7 @@ function getFieldsForLanguage() {
 
 
 /* =========================================================
-   TESTO COMPLETO SCOPRI DI PIÙ
+   TESTO COMPLETO
    ========================================================= */
 
 function getMoreText() {
@@ -378,7 +380,7 @@ function getMoreText() {
 
 
 /* =========================================================
-   ANTEPRIMA TESTO
+   ANTEPRIMA
    ========================================================= */
 
 function createPreview(text) {
@@ -388,19 +390,11 @@ function createPreview(text) {
     }
 
 
-    /*
-     * Mostra circa 300 caratteri.
-     * Il testo completo rimane comunque
-     * disponibile cliccando "Scopri di più".
-     */
-
     const maxLength = 300;
 
 
     if (text.length <= maxLength) {
-
         return text;
-
     }
 
 
@@ -454,45 +448,33 @@ function openMonument(
         ];
 
 
-    /*
-     * NOME
-     */
+    /* NOME */
 
     document
-        .getElementById(
-            "place-name"
-        )
+        .getElementById("place-name")
         .textContent =
             monument[
                 "Nome Luogo"
             ] || "";
 
 
-    /*
-     * SEGRETO
-     */
+    /* SEGRETO */
 
     document
-        .getElementById(
-            "secret-title"
-        )
+        .getElementById("secret-title")
         .textContent =
             labels.secret;
 
 
     document
-        .getElementById(
-            "place-secret"
-        )
+        .getElementById("place-secret")
         .textContent =
             monument[
                 fields.secret
             ] || "";
 
 
-    /*
-     * SCOPRI DI PIÙ
-     */
+    /* SCOPRI DI PIÙ */
 
     const moreText =
         monument[
@@ -501,17 +483,13 @@ function openMonument(
 
 
     document
-        .getElementById(
-            "more-title"
-        )
+        .getElementById("more-title")
         .textContent =
             labels.more;
 
 
     document
-        .getElementById(
-            "place-more"
-        )
+        .getElementById("place-more")
         .textContent =
             createPreview(
                 moreText
@@ -519,62 +497,42 @@ function openMonument(
 
 
     document
-        .getElementById(
-            "more-hint"
-        )
-        .textContent =
-            moreText.length > 300
-                ? labels.moreHint
-                : "";
+        .getElementById("place-more")
+        .classList.add("collapsed");
+
+
+    document
+        .getElementById("more-section")
+        .classList.remove("expanded");
 
 
     /*
      * IMPORTANTE:
-     * Ogni volta che si apre un monumento
-     * il testo parte chiuso.
+     * "Clicca per leggere tutto"
+     * rimane SEMPRE visibile.
      */
 
     document
-        .getElementById(
-            "place-more"
-        )
-        .classList.add(
-            "collapsed"
-        );
+        .getElementById("more-hint")
+        .textContent =
+            labels.moreHint;
 
 
-    document
-        .getElementById(
-            "more-section"
-        )
-        .classList.remove(
-            "expanded"
-        );
-
-
-    /*
-     * AUDIO
-     */
+    /* AUDIO */
 
     document
-        .getElementById(
-            "audio-title"
-        )
+        .getElementById("audio-title")
         .textContent =
             labels.audio;
 
 
     document
-        .getElementById(
-            "audio-description"
-        )
+        .getElementById("audio-description")
         .textContent =
             labels.audioDescription;
 
 
-    /*
-     * VIDEO
-     */
+    /* VIDEO */
 
     setupVideo(
         monument["Video"],
@@ -582,17 +540,11 @@ function openMonument(
     );
 
 
-    /*
-     * APERTURA
-     */
+    /* APRI */
 
     document
-        .getElementById(
-            "place-modal"
-        )
-        .classList.remove(
-            "hidden"
-        );
+        .getElementById("place-modal")
+        .classList.remove("hidden");
 
 
     stopSpeech();
@@ -601,7 +553,7 @@ function openMonument(
 
 
 /* =========================================================
-   ESPANSIONE SCOPRI DI PIÙ
+   SCOPRI DI PIÙ
    ========================================================= */
 
 function toggleMoreText() {
@@ -611,14 +563,8 @@ function toggleMoreText() {
     }
 
 
-    const fields =
-        getFieldsForLanguage();
-
-
     const fullText =
-        currentMonument[
-            fields.more
-        ] || "";
+        getMoreText();
 
 
     const textElement =
@@ -639,72 +585,77 @@ function toggleMoreText() {
         );
 
 
-    if (
+    const isExpanded =
         section.classList.contains(
             "expanded"
-        )
-    ) {
+        );
 
-        /*
-         * Torna all'anteprima.
-         */
+
+    if (isExpanded) {
 
         textElement.textContent =
             createPreview(
                 fullText
             );
 
-
         textElement.classList.add(
             "collapsed"
         );
-
 
         section.classList.remove(
             "expanded"
         );
 
-
-        hint.textContent =
-            translations[
-                currentLanguage
-            ].moreHint;
-
-
     } else {
 
         /*
-         * Mostra tutto.
+         * QUI VIENE INSERITO
+         * IL TESTO COMPLETO,
+         * NON L'ANTEPRIMA.
          */
 
         textElement.textContent =
             fullText;
 
-
         textElement.classList.remove(
             "collapsed"
         );
-
 
         section.classList.add(
             "expanded"
         );
 
-
-        hint.textContent = "";
-
     }
+
+
+    /*
+     * Rimane sempre visibile.
+     */
+
+    hint.textContent =
+        translations[
+            currentLanguage
+        ].moreHint;
 
 }
 
 
+/*
+ * Il click è assegnato direttamente
+ * alla sezione.
+ */
+
 document
-    .getElementById(
-        "more-section"
-    )
+    .getElementById("more-section")
     .addEventListener(
         "click",
-        toggleMoreText
+        function(event) {
+
+            event.preventDefault();
+
+            toggleMoreText();
+
+        }
     );
 
 
@@ -730,6 +681,53 @@ function getSpeechLanguage() {
 
 
 /* =========================================================
+   CARICAMENTO VOCI
+   ========================================================= */
+
+function loadSpeechVoices() {
+
+    if (
+        !("speechSynthesis" in window)
+    ) {
+        return;
+    }
+
+
+    const voices =
+        window.speechSynthesis.getVoices();
+
+
+    if (voices.length) {
+
+        selectedVoice =
+            getBestVoice(
+                getSpeechLanguage()
+            );
+
+    }
+
+}
+
+
+/*
+ * Alcuni browser caricano
+ * le voci in modo asincrono.
+ */
+
+if (
+    "speechSynthesis" in window
+) {
+
+    window.speechSynthesis
+        .addEventListener(
+            "voiceschanged",
+            loadSpeechVoices
+        );
+
+}
+
+
+/* =========================================================
    TROVA VOCE
    ========================================================= */
 
@@ -745,16 +743,17 @@ function getBestVoice(language) {
     }
 
 
-    let voice =
+    const exact =
         voices.find(
-            v =>
-                v.lang.toLowerCase() ===
+            voice =>
+                voice.lang &&
+                voice.lang.toLowerCase() ===
                 language.toLowerCase()
         );
 
 
-    if (voice) {
-        return voice;
+    if (exact) {
+        return exact;
     }
 
 
@@ -764,17 +763,18 @@ function getBestVoice(language) {
             .toLowerCase();
 
 
-    voice =
+    const sameLanguage =
         voices.find(
-            v =>
-                v.lang
+            voice =>
+                voice.lang &&
+                voice.lang
                     .substring(0, 2)
                     .toLowerCase() ===
                 prefix
         );
 
 
-    return voice || null;
+    return sameLanguage || null;
 
 }
 
@@ -805,34 +805,40 @@ function speakMoreText() {
 
 
     /*
-     * IMPORTANTE:
-     * qui prendiamo SEMPRE il testo originale
-     * completo di "Scopri di più".
-     *
-     * NON prendiamo il testo dell'anteprima
-     * mostrato nel popup.
+     * Prendiamo direttamente
+     * il testo COMPLETO dal JSON.
      */
 
     const text =
         getMoreText();
 
 
-    if (!text.trim()) {
+    if (
+        typeof text !== "string" ||
+        !text.trim()
+    ) {
+
+        alert(
+            "Non è disponibile un testo " +
+            "da leggere per questo monumento."
+        );
+
         return;
+
     }
 
 
     stopSpeech();
 
 
-    speechUtterance =
-        new SpeechSynthesisUtterance(
-            text
-        );
-
-
     const language =
         getSpeechLanguage();
+
+
+    speechUtterance =
+        new SpeechSynthesisUtterance(
+            text.trim()
+        );
 
 
     speechUtterance.lang =
@@ -851,6 +857,13 @@ function speakMoreText() {
         1;
 
 
+    /*
+     * Cerchiamo la voce ogni volta,
+     * perché su alcuni browser
+     * le voci vengono caricate
+     * dopo l'apertura della pagina.
+     */
+
     const voice =
         getBestVoice(
             language
@@ -865,10 +878,47 @@ function speakMoreText() {
     }
 
 
-    window.speechSynthesis
-        .speak(
-            speechUtterance
-        );
+    speechUtterance.onend =
+        function() {
+
+            speechUtterance =
+                null;
+
+        };
+
+
+    speechUtterance.onerror =
+        function(error) {
+
+            console.error(
+                "Errore sintesi vocale:",
+                error
+            );
+
+            speechUtterance =
+                null;
+
+        };
+
+
+    /*
+     * Piccolo ritardo:
+     * evita il problema di alcuni browser
+     * che non eseguono speak() immediatamente
+     * dopo cancel().
+     */
+
+    setTimeout(
+        function() {
+
+            window.speechSynthesis
+                .speak(
+                    speechUtterance
+                );
+
+        },
+        80
+    );
 
 }
 
@@ -943,16 +993,14 @@ function repeatSpeech() {
 
 
 /* =========================================================
-   PLAY AUDIO
+   PLAY
    ========================================================= */
 
 document
-    .getElementById(
-        "audio-play"
-    )
+    .getElementById("audio-play")
     .addEventListener(
         "click",
-        function () {
+        function() {
 
             if (
                 window.speechSynthesis.paused
@@ -971,16 +1019,14 @@ document
 
 
 /* =========================================================
-   PAUSA AUDIO
+   PAUSA
    ========================================================= */
 
 document
-    .getElementById(
-        "audio-pause"
-    )
+    .getElementById("audio-pause")
     .addEventListener(
         "click",
-        function () {
+        function() {
 
             pauseSpeech();
 
@@ -989,16 +1035,14 @@ document
 
 
 /* =========================================================
-   RIPETI AUDIO
+   RIPETI
    ========================================================= */
 
 document
-    .getElementById(
-        "audio-repeat"
-    )
+    .getElementById("audio-repeat")
     .addEventListener(
         "click",
-        function () {
+        function() {
 
             repeatSpeech();
 
@@ -1051,7 +1095,7 @@ function setupVideo(
 
 
     button.onclick =
-        function () {
+        function() {
 
             window.open(
                 videoUrl.trim(),
@@ -1078,20 +1122,14 @@ function closeMonument() {
 
 
     document
-        .getElementById(
-            "place-modal"
-        )
-        .classList.add(
-            "hidden"
-        );
+        .getElementById("place-modal")
+        .classList.add("hidden");
 
 }
 
 
 document
-    .getElementById(
-        "close-modal"
-    )
+    .getElementById("close-modal")
     .addEventListener(
         "click",
         closeMonument
@@ -1099,12 +1137,10 @@ document
 
 
 document
-    .getElementById(
-        "place-modal"
-    )
+    .getElementById("place-modal")
     .addEventListener(
         "click",
-        function (event) {
+        function(event) {
 
             if (
                 event.target === this
@@ -1131,7 +1167,7 @@ document
 
             button.addEventListener(
                 "click",
-                function () {
+                function() {
 
                     currentLanguage =
                         this.dataset.lang;
@@ -1153,6 +1189,9 @@ document
                     this.classList.add(
                         "active"
                     );
+
+
+                    loadSpeechVoices();
 
 
                     if (
@@ -1181,7 +1220,7 @@ document
 
 
 /* =========================================================
-   CURSORE DEL PERCORSO
+   CURSORE
    ========================================================= */
 
 function initializeRouteCursor() {
@@ -1251,8 +1290,7 @@ function playRoute() {
     }
 
 
-    routePlaying =
-        true;
+    routePlaying = true;
 
 
     clearInterval(
@@ -1267,7 +1305,7 @@ function playRoute() {
 
     routeAnimation =
         setInterval(
-            function () {
+            function() {
 
                 if (!routePlaying) {
                     return;
@@ -1300,8 +1338,7 @@ function playRoute() {
 
 function pauseRoute() {
 
-    routePlaying =
-        false;
+    routePlaying = false;
 
 
     clearInterval(
@@ -1316,8 +1353,7 @@ function restartRoute() {
     pauseRoute();
 
 
-    routeIndex =
-        0;
+    routeIndex = 0;
 
 
     moveCursorToMonument(
@@ -1356,11 +1392,13 @@ window.addEventListener(
 
 document.addEventListener(
     "DOMContentLoaded",
-    function () {
+    function() {
 
         initializeMap();
 
         initializeRouteCursor();
+
+        loadSpeechVoices();
 
 
         map.on(
