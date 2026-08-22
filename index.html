@@ -1,8 +1,14 @@
 <!DOCTYPE html>
 <html lang="it">
+
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    >
 
     <title>A casa di Francesca - Lecce</title>
 
@@ -13,14 +19,21 @@
     >
 
     <link rel="stylesheet" href="style.css">
+
 </head>
+
 
 <body>
 
+
     <!-- MAPPA -->
+
     <div id="map"></div>
 
+
+
     <!-- INTESTAZIONE -->
+
     <div id="app-header">
 
         <div class="header-title">
@@ -38,25 +51,38 @@
     </div>
 
 
+
     <!-- SELETTORE LINGUA -->
+
     <div id="language-selector">
 
-        <button class="language-btn active" data-lang="it">
+        <button
+            class="language-btn active"
+            data-lang="it"
+        >
             🇮🇹 IT
         </button>
 
-        <button class="language-btn" data-lang="en">
+        <button
+            class="language-btn"
+            data-lang="en"
+        >
             🇬🇧 EN
         </button>
 
-        <button class="language-btn" data-lang="es">
+        <button
+            class="language-btn"
+            data-lang="es"
+        >
             🇪🇸 ES
         </button>
 
     </div>
 
 
+
     <!-- CONTROLLI AUDIO -->
+
     <div id="audio-controls">
 
         <button
@@ -86,14 +112,22 @@
     </div>
 
 
+
     <!-- CURSORE -->
+
     <div id="route-cursor"></div>
 
 
+
     <!-- POPUP -->
-    <div id="place-modal" class="modal hidden">
+
+    <div
+        id="place-modal"
+        class="modal hidden"
+    >
 
         <div class="modal-content">
+
 
             <button
                 id="close-modal"
@@ -104,10 +138,15 @@
             </button>
 
 
+
+            <!-- NOME MONUMENTO -->
+
             <h2 id="place-name"></h2>
 
 
+
             <!-- SEGRETO -->
+
             <section class="place-section">
 
                 <h3 id="secret-title">
@@ -122,7 +161,9 @@
             </section>
 
 
+
             <!-- SCOPRI DI PIÙ -->
+
             <section
                 id="more-section"
                 class="place-section expandable-section"
@@ -135,10 +176,12 @@
                     Scopri di più
                 </h3>
 
+
                 <div
                     id="place-more"
                     class="place-text more-text collapsed"
                 ></div>
+
 
                 <div
                     id="more-hint"
@@ -150,13 +193,18 @@
             </section>
 
 
+
             <!-- AUDIO -->
+
             <section
                 id="speech-section"
                 class="place-section"
             >
 
-                <h3 id="audio-title">
+                <h3
+                    id="audio-title"
+                    class="audio-title-clickable"
+                >
                     Ascolta
                 </h3>
 
@@ -167,7 +215,9 @@
             </section>
 
 
+
             <!-- VIDEO -->
+
             <section
                 id="video-section"
                 class="place-section"
@@ -182,9 +232,11 @@
 
             </section>
 
+
         </div>
 
     </div>
+
 
 
     <script
@@ -192,7 +244,10 @@
         crossorigin=""
     ></script>
 
+
     <script src="app.js"></script>
 
+
 </body>
+
 </html>
