@@ -9,86 +9,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     
     <!-- Stili CSS personalizzati -->
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-        }
-
-        #map {
-            width: 100%;
-            height: 100vh;
-        }
-
-        /* Selettore lingua */
-        #language-selector {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            z-index: 1000;
-            background: white;
-            padding: 8px 12px;
-            border-radius: 8px;
-            box-shadow: 0 3px 14px rgba(0,0,0,0.2);
-        }
-
-        #language-selector label {
-            font-size: 13px;
-            font-weight: bold;
-            margin-right: 5px;
-            color: #333;
-        }
-
-        #lang-select {
-            padding: 4px 8px;
-            border-radius: 4px;
-            border: 1px solid #ccc;
-            font-size: 13px;
-            background-color: #fff;
-        }
-
-        /* Stili per il popup della mappa */
-        .leaflet-popup-content-wrapper {
-            padding: 5px;
-            border-radius: 8px;
-            box-shadow: 0 3px 14px rgba(0,0,0,0.2);
-        }
-
-        .leaflet-popup-content {
-            margin: 12px 16px;
-            line-height: 1.5;
-            font-size: 14px;
-            color: #333;
-            max-width: 280px;
-        }
-
-        .leaflet-popup-content h3 {
-            margin: 0 0 8px 0;
-            font-size: 16px;
-            color: #8B0000; /* Bordeaux barocco */
-        }
-
-        .leaflet-popup-content p {
-            margin: 0 0 8px 0;
-        }
-
-        .leaflet-popup-content img {
-            width: 100%;
-            height: auto;
-            border-radius: 4px;
-            margin-bottom: 8px;
-        }
-
-        .popup-secret {
-            font-size: 13px;
-            color: #555;
-            background: #f9f9f9;
-            padding: 6px;
-            border-left: 3px solid #8B0000;
-            margin-bottom: 8px;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -109,8 +30,8 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
     <script>
-        // Inizializzazione della mappa centrata su Lecce
-        var map = L.map('map').setView([40.3529, 18.1716], 15);
+        // 1. Inizializzazione della mappa centrata su Lecce
+        var map = L.map('map').setView([40.3547, 18.1728], 15);
 
         // Livello cartografico OpenStreetMap
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -118,112 +39,102 @@
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
 
-        // Dataset completo dei monumenti con supporto multilingua
+        // 2. Definizione delle icone personalizzate (Blu e Rossa per "A casa di Francesca")
+        const blueIcon = L.icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+            iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
+        });
+
+        const redIcon = L.icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+            iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
+        });
+
+        // 3. Dataset dei monumenti (Predisposto per Testi, Segreti, Immagini, Audio e Video)
         const monuments = [
             {
-                name_ita: "Basilica di Santa Croce",
+                name: "Basilica di Santa Croce",
                 name_eng: "Basilica di Santa Croce",
                 name_esp: "Basílica de Santa Croce",
                 secret_ita: "Guarda il rosone come un orologio: alle ore 9 trovi l'architetto Cesare Penna col suo nasone.",
                 secret_eng: "Look at the rose window like a clock: at 9 o'clock you'll find architect Cesare Penna with his big nose.",
                 secret_esp: "Mira el rosetón como un reloj: a las 9 encontrarás al arquitecto Cesare Penna con su gran nariz.",
-                desc_ita: "È il capolavoro assoluto del Barocco leccese, frutto di un cantiere monumentale durato oltre un secolo, dal 1549 al 1646.",
-                desc_eng: "It is the absolute masterpiece of Lecce Baroque, the result of a monumental construction project that lasted over a century, from 1549 to 1646.",
-                desc_esp: "Es la obra maestra absoluta del barroco lecciano, fruto de un monumental proyecto de construcción que duró más de un siglo, de 1549 a 1646.",
+                desc_ita: "È il capolavoro assoluto del Barocco leccese, frutto di un cantiere monumentale durato oltre un secolo.",
+                desc_eng: "It is the absolute masterpiece of Lecce Baroque, the result of a monumental construction project.",
+                desc_esp: "Es la obra maestra absoluta del barroco lecciano, fruto de un monumental proyecto de construcción.",
                 lat: 40.3547, lng: 18.1728,
-                image: "https://assets.softr-files.com/applications/4ef41785-d627-4549-8c07-6e7680b06825/assets/ae530b5d-33f0-4ab2-9349-13fc47f9709c.jpeg"
+                image: "https://assets.softr-files.com/applications/4ef41785-d627-4549-8c07-6e7680b06825/assets/ae530b5d-33f0-4ab2-9349-13fc47f9709c.jpeg",
+                audio: "", // Inserire link file audio se disponibile (es. "audio/santacroce.mp3")
+                video: ""  // Inserire link video se disponibile
             },
             {
-                name_ita: "Museo Faggiano",
-                name_eng: "Faggiano Museum",
-                name_esp: "Museo Faggiano",
-                secret_ita: "Un pavimento che svela millenni: dai Templari ai pozzi messapi in una casa privata.",
-                secret_eng: "A floor that reveals millennia: from the Templars to the Messapian wells in a private home.",
-                secret_esp: "Un suelo que revela milenios: desde los Templarios hasta los pozos mesapios en una casa particular.",
-                desc_ita: "Iniziato nel 2001 per riparare un tubo di scarico, ha portato alla luce 2500 anni di storia stratificata.",
-                desc_eng: "Began in 2001 to repair a drainpipe, uncovering 2,500 years of stratified history.",
-                desc_esp: "Comenzó en 2001 para reparar una tubería, descubriendo 2500 años de historia estratificada.",
-                lat: 40.3512, lng: 18.1705,
-                image: "https://assets.softr-files.com/applications/4ef41785-d627-4549-8c07-6e7680b06825/assets/94ab7799-7e42-4b18-88f3-ca22e639b6b1.jpeg"
-            },
-            {
-                name_ita: "Via Palmieri 22",
-                name_eng: "Via Palmieri 22",
-                name_esp: "Via Palmieri 22",
-                secret_ita: "La grata 'oscura' e maliziosa che ha fatto ridere tutta Italia.",
-                secret_eng: "The 'dark' and mischievous grate that made all of Italy laugh.",
-                secret_esp: "La reja 'oscura' y traviesa que hizo reír a toda Italia.",
-                desc_ita: "Al civico 22 si trova un dettaglio in ferro battuto che scatena da anni la curiosità dei passanti, pur trattandosi di un falso storico sulle case chiuse.",
-                desc_eng: "At number 22, a wrought-iron detail has sparked curiosity for years, despite being a complete historical lie regarding brothels.",
-                desc_esp: "En el número 22, un detalle de hierro forjado ha despertado curiosidad durante años, a pesar de ser una completa mentira histórica.",
-                lat: 40.3535, lng: 18.1698,
-                image: "https://assets.softr-files.com/applications/4ef41785-d627-4549-8c07-6e7680b06825/assets/9f49851c-5392-4608-b24d-e2720525dd14.jpeg"
-            },
-            {
-                name_ita: "Piazza Duomo",
-                name_eng: "Piazza Duomo",
-                name_esp: "Piazza Duomo",
-                secret_ita: "L’unico salotto barocco chiuso d’Europa: lo scrigno segreto che toglie il fiato.",
-                secret_eng: "The only enclosed baroque salon in Europe: the secret treasure chest that takes your breath away.",
-                secret_esp: "El único salón barroco cerrado de Europa: el cofre del tesoro secreto que te quita el aliento.",
-                desc_ita: "Accanto alla Cattedrale svetta il maestoso campanile alto 72 metri, con cupola in maioliche colorate.",
-                desc_eng: "Next to the Cathedral stands the majestic 72-meter tall bell tower topped with colorful majolica.",
-                desc_esp: "Junto a la Catedral se alza el majestuoso campanario de 72 metros con cúpula de mayólica.",
-                lat: 40.3521, lng: 18.1691,
-                image: "https://assets.softr-files.com/applications/4ef41785-d627-4549-8c07-6e7680b06825/assets/c47d6102-a227-4c43-ac36-3f296d214123.jpeg"
-            },
-            {
-                name_ita: "Villa Comunale",
-                name_eng: "Villa Comunale",
-                name_esp: "Villa Comunale",
-                secret_ita: "Oltre il cancello, il tempo rallenta tra statue silenziose e ombre antiche.",
-                secret_eng: "Beyond the gate, time slows among silent statues and ancient shadows.",
-                secret_esp: "Más allá de la puerta, el tiempo se ralentiza entre estatuas silenciosas.",
-                desc_ita: "Polmone verde nel cuore di Lecce realizzato nel 1830 e dedicato a Giuseppe Garibaldi.",
-                desc_eng: "Green lung in the heart of Lecce created in 1830 and dedicated to Giuseppe Garibaldi.",
-                desc_esp: "Pulmón verde en el corazón de Lecce creado en 1830 y dedicado a Giuseppe Garibaldi.",
-                lat: 40.3552, lng: 18.1749,
-                image: "https://assets.softr-files.com/applications/4ef41785-d627-4549-8c07-6e7680b06825/assets/2dd4e1ed-f3b2-4eb2-bca3-b7d062ba9f9d.jpeg"
+                name: "A casa di Francesca",
+                name_eng: "A casa di Francesca",
+                name_esp: "A casa di Francesca",
+                secret_ita: "Il punto di partenza ideale nel cuore del centro storico di Lecce, circondato da volte a stella.",
+                secret_eng: "The ideal starting point in the heart of Lecce's historic center, surrounded by star vaults.",
+                secret_esp: "El punto de partida ideal en el corazón del centro histórico de Lecce.",
+                desc_ita: "Il tuo appartamento turistico dotato di ogni comfort, situato in Vico Pompeo dei Renzi 4.",
+                desc_eng: "Your tourist rental apartment equipped with every comfort, located at Vico Pompeo dei Renzi 4.",
+                desc_esp: "Tu apartamento turístico equipado con todas las comodidades, ubicado en Vico Pompeo dei Renzi 4.",
+                lat: 40.3529, lng: 18.1716,
+                image: "",
+                audio: "",
+                video: ""
             }
         ];
 
         let currentLang = 'ita';
         let markersLayer = L.layerGroup().addTo(map);
 
-        // Funzione per aggiornare i marker sulla mappa in base alla lingua scelta
+        // 4. Funzione per generare e aggiornare i marker sulla mappa
         function renderMarkers() {
             markersLayer.clearLayers();
 
             monuments.forEach(item => {
-                let title = item.name_ita;
+                let title = item.name;
                 let secret = item.secret_ita;
                 let desc = item.desc_ita;
 
                 if (currentLang === 'eng') {
-                    title = item.name_eng;
+                    title = item.name_eng || item.name;
                     secret = item.secret_eng;
                     desc = item.desc_eng;
                 } else if (currentLang === 'esp') {
-                    title = item.name_esp;
+                    title = item.name_esp || item.name;
                     secret = item.secret_esp;
                     desc = item.desc_esp;
                 }
 
+                // Controllo icona (Rossa per "A casa di Francesca", Blu per il resto)
+                const isFrancesca = title.toLowerCase().includes("a casa di francesca");
+                const markerIcon = isFrancesca ? redIcon : blueIcon;
+
+                // Struttura HTML del Popup con supporto multimediale pulito
                 let popupHTML = `
                     <div>
-                        <img src="${item.image}" alt="${title}">
+                        ${item.image ? `<img src="${item.image}" alt="${title}">` : ''}
                         <h3>${title}</h3>
-                        <div class="popup-secret"><strong>💡 ${currentLang === 'eng' ? 'Secret' : currentLang === 'esp' ? 'Secreto' : 'Il Segreto'}:</strong> ${secret}</div>
+                        <div class="popup-secret">
+                            <strong>💡 ${currentLang === 'eng' ? 'Secret' : currentLang === 'esp' ? 'Secreto' : 'Il Segreto'}:</strong> ${secret}
+                        </div>
                         <p>${desc}</p>
+                        
+                        <div class="popup-media">
+                            ${item.audio ? `<audio controls><source src="${item.audio}" type="audio/mpeg">Il tuo browser non supporta l'audio.</audio>` : ''}
+                            ${item.video ? `<video controls><source src="${item.video}" type="video/mp4">Il tuo browser non supporta il video.</video>` : ''}
+                        </div>
                     </div>
                 `;
 
-                let marker = L.marker([item.lat, item.lng]).bindPopup(popupHTML);
+                let marker = L.marker([item.lat, item.lng], { icon: markerIcon }).bindPopup(popupHTML);
                 markersLayer.addLayer(marker);
             });
         }
 
-        // Ascoltatore eventi per il cambio lingua
+        // 5. Ascoltatore eventi per il cambio lingua in tempo reale
         document.getElementById('lang-select').addEventListener('change', function(e) {
             currentLang = e.target.value;
             renderMarkers();
