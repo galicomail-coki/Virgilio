@@ -1,8 +1,14 @@
 <!DOCTYPE html>
 <html lang="it">
+
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    >
 
     <title>A casa di Francesca - Lecce</title>
 
@@ -13,48 +19,90 @@
     >
 
     <link rel="stylesheet" href="style.css">
+
 </head>
 
 <body>
 
-    <!-- MAPPA -->
+    <!-- =====================================================
+         MAPPA
+         ===================================================== -->
+
     <div id="map"></div>
 
-    <!-- INTESTAZIONE -->
+
+    <!-- =====================================================
+         INTESTAZIONE
+         ===================================================== -->
+
     <div id="app-header">
-        <div class="header-title">A casa di Francesca</div>
+
+        <div class="header-title">
+            A casa di Francesca
+        </div>
+
         <div class="header-address">
             Vico Pompeo dei Renzi 4, 73100 - Lecce
         </div>
+
         <div class="header-phone">
             +39 338 6116 714
         </div>
-    </div>
-
-    <!-- SELETTORE LINGUA -->
-    <div id="language-selector">
-
-        <button class="language-btn active" data-lang="it">
-            🇮🇹 IT
-        </button>
-
-        <button class="language-btn" data-lang="en">
-            🇬🇧 EN
-        </button>
-
-        <button class="language-btn" data-lang="es">
-            🇪🇸 ES
-        </button>
 
     </div>
 
-    <!-- CONTROLLI AUDIO -->
-    <div id="audio-controls">
+
+    <!-- =====================================================
+         SELETTORE LINGUA
+         ===================================================== -->
+
+    <div
+        id="language-selector"
+        aria-label="Selezione lingua"
+    >
+
+        <button
+            class="language-btn language-it active"
+            data-lang="it"
+            type="button"
+        >
+            🇮🇹 <span>Italiano</span>
+        </button>
+
+        <button
+            class="language-btn language-en"
+            data-lang="en"
+            type="button"
+        >
+            🇬🇧 <span>English</span>
+        </button>
+
+        <button
+            class="language-btn language-es"
+            data-lang="es"
+            type="button"
+        >
+            🇪🇸 <span>Español</span>
+        </button>
+
+    </div>
+
+
+    <!-- =====================================================
+         CONTROLLI AUDIO
+         ===================================================== -->
+
+    <div
+        id="audio-controls"
+        aria-label="Controlli audio"
+    >
 
         <button
             id="audio-play"
             class="audio-control"
+            type="button"
             title="Ascolta"
+            aria-label="Ascolta"
         >
             ▶
         </button>
@@ -62,7 +110,9 @@
         <button
             id="audio-pause"
             class="audio-control"
+            type="button"
             title="Pausa"
+            aria-label="Pausa"
         >
             ⏸
         </button>
@@ -70,32 +120,56 @@
         <button
             id="audio-repeat"
             class="audio-control"
+            type="button"
             title="Ripeti"
+            aria-label="Ripeti"
         >
             ↻
         </button>
 
     </div>
 
-    <!-- CURSORE -->
+
+    <!-- =====================================================
+         CURSORE DEL PERCORSO
+         ===================================================== -->
+
     <div id="route-cursor"></div>
 
-    <!-- POPUP MONUMENTO -->
-    <div id="place-modal" class="modal hidden">
+
+    <!-- =====================================================
+         POPUP MONUMENTO
+         ===================================================== -->
+
+    <div
+        id="place-modal"
+        class="modal hidden"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="place-name"
+    >
 
         <div class="modal-content">
 
             <button
                 id="close-modal"
                 class="close-btn"
+                type="button"
                 aria-label="Chiudi"
             >
                 ×
             </button>
 
+
+            <!-- NOME -->
+
             <h2 id="place-name"></h2>
 
-            <!-- SEGRETO -->
+
+            <!-- =================================================
+                 SEGRETO DI VIRGILIO
+                 ================================================= -->
+
             <section class="place-section">
 
                 <h3 id="secret-title">
@@ -109,7 +183,11 @@
 
             </section>
 
-            <!-- SCOPRI DI PIÙ -->
+
+            <!-- =================================================
+                 SCOPRI DI PIÙ
+                 ================================================= -->
+
             <section class="place-section">
 
                 <h3 id="more-title">
@@ -123,7 +201,11 @@
 
             </section>
 
-            <!-- AUDIO SINTETIZZATO -->
+
+            <!-- =================================================
+                 AUDIO
+                 ================================================= -->
+
             <section
                 id="speech-section"
                 class="place-section"
@@ -139,7 +221,11 @@
 
             </section>
 
-            <!-- VIDEO -->
+
+            <!-- =================================================
+                 VIDEO
+                 ================================================= -->
+
             <section
                 id="video-section"
                 class="place-section"
@@ -148,6 +234,7 @@
                 <button
                     id="video-btn"
                     class="video-btn"
+                    type="button"
                 >
                     ▶ Guarda il video
                 </button>
@@ -158,12 +245,23 @@
 
     </div>
 
+
+    <!-- =====================================================
+         LEAFLET
+         ===================================================== -->
+
     <script
         src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-        crossorigin="">
-    </script>
+        crossorigin=""
+    ></script>
+
+
+    <!-- =====================================================
+         APPLICAZIONE
+         ===================================================== -->
 
     <script src="app.js"></script>
 
 </body>
+
 </html>
