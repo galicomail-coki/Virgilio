@@ -44,8 +44,9 @@ async function caricaMappa() {
         markersLayer.clearLayers();
 
         luoghi.forEach(luogo => {
-            const lat = parseFloat(luogo.lat);
-            const lng = parseFloat(luogo.lng);
+            // CORRETTO: Uso di "Lat" e "Long" con le maiuscole come nel JSON
+            const lat = parseFloat(luogo.Lat);
+            const lng = parseFloat(luogo.Long);
 
             if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
                 let cat, seg, scopri, labelSeg, labelScopri, btnTxt;
