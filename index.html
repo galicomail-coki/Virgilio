@@ -2,146 +2,238 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Project Virgilio - Tour di Lecce</title>
-    
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-    
-    <!-- Stili CSS personalizzati -->
-    <link rel="stylesheet" href="style.css">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    >
+
+    <title>Virgilio - Lecce</title>
+
+    <!-- Leaflet -->
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIINfZz4H9Qf8s5w1Y8Z7z7v3X2p3j2c5zE="
+        crossorigin=""
+    >
+
+    <!-- Stili dell'app -->
+    <link rel="stylesheet" href="styl.css">
 </head>
+
 <body>
 
-    <!-- Selettore della Lingua -->
-    <div id="language-selector">
-        <label for="lang-select">🌐</label>
-        <select id="lang-select">
-            <option value="ita" selected>Italiano</option>
-            <option value="eng">English</option>
-            <option value="esp">Español</option>
-        </select>
-    </div>
+    <!-- =========================================================
+         CONTENITORE PRINCIPALE
+    ========================================================== -->
 
-    <!-- Contenitore della Mappa -->
-    <div id="map"></div>
+    <main id="app">
 
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+        <!-- MAPPA -->
+        <div id="map"></div>
 
-    <script>
-        // 1. Inizializzazione della mappa centrata su Lecce
-        var map = L.map('map').setView([40.3547, 18.1728], 15);
 
-        // Livello cartografico OpenStreetMap
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(map);
+        <!-- =====================================================
+             PANNELLO SUPERIORE
+        ====================================================== -->
 
-        // 2. Definizione delle icone personalizzate (Blu e Rossa per "A casa di Francesca")
-        const blueIcon = L.icon({
-            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
-            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-            iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
-        });
+        <div id="top-panel">
 
-        const redIcon = L.icon({
-            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
-            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-            iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
-        });
+            <div class="app-title">
+                <span class="app-title-main">VIRGILIO</span>
+                <span class="app-title-sub">Lecce</span>
+            </div>
 
-        // 3. Dataset dei monumenti (Predisposto per Testi, Segreti, Immagini, Audio e Video)
-        const monuments = [
-            {
-                name: "Basilica di Santa Croce",
-                name_eng: "Basilica di Santa Croce",
-                name_esp: "Basílica de Santa Croce",
-                secret_ita: "Guarda il rosone come un orologio: alle ore 9 trovi l'architetto Cesare Penna col suo nasone.",
-                secret_eng: "Look at the rose window like a clock: at 9 o'clock you'll find architect Cesare Penna with his big nose.",
-                secret_esp: "Mira el rosetón como un reloj: a las 9 encontrarás al arquitecto Cesare Penna con su gran nariz.",
-                desc_ita: "È il capolavoro assoluto del Barocco leccese, frutto di un cantiere monumentale durato oltre un secolo.",
-                desc_eng: "It is the absolute masterpiece of Lecce Baroque, the result of a monumental construction project.",
-                desc_esp: "Es la obra maestra absoluta del barroco lecciano, fruto de un monumental proyecto de construcción.",
-                lat: 40.3547, lng: 18.1728,
-                image: "https://assets.softr-files.com/applications/4ef41785-d627-4549-8c07-6e7680b06825/assets/ae530b5d-33f0-4ab2-9349-13fc47f9709c.jpeg",
-                audio: "", // Inserire link file audio se disponibile (es. "audio/santacroce.mp3")
-                video: ""  // Inserire link video se disponibile
-            },
-            {
-                name: "A casa di Francesca",
-                name_eng: "A casa di Francesca",
-                name_esp: "A casa di Francesca",
-                secret_ita: "Il punto di partenza ideale nel cuore del centro storico di Lecce, circondato da volte a stella.",
-                secret_eng: "The ideal starting point in the heart of Lecce's historic center, surrounded by star vaults.",
-                secret_esp: "El punto de partida ideal en el corazón del centro histórico de Lecce.",
-                desc_ita: "Il tuo appartamento turistico dotato di ogni comfort, situato in Vico Pompeo dei Renzi 4.",
-                desc_eng: "Your tourist rental apartment equipped with every comfort, located at Vico Pompeo dei Renzi 4.",
-                desc_esp: "Tu apartamento turístico equipado con todas las comodidades, ubicado en Vico Pompeo dei Renzi 4.",
-                lat: 40.3529, lng: 18.1716,
-                image: "",
-                audio: "",
-                video: ""
-            }
-        ];
+            <!-- SELETTORE LINGUA -->
+            <div class="language-box">
 
-        let currentLang = 'ita';
-        let markersLayer = L.layerGroup().addTo(map);
+                <label for="language-select" class="sr-only">
+                    Lingua
+                </label>
 
-        // 4. Funzione per generare e aggiornare i marker sulla mappa
-        function renderMarkers() {
-            markersLayer.clearLayers();
+                <select id="language-select">
+                    <option value="it">🇮🇹 Italiano</option>
+                    <option value="en">🇬🇧 English</option>
+                    <option value="es">🇪🇸 Español</option>
+                </select>
 
-            monuments.forEach(item => {
-                let title = item.name;
-                let secret = item.secret_ita;
-                let desc = item.desc_ita;
+            </div>
 
-                if (currentLang === 'eng') {
-                    title = item.name_eng || item.name;
-                    secret = item.secret_eng;
-                    desc = item.desc_eng;
-                } else if (currentLang === 'esp') {
-                    title = item.name_esp || item.name;
-                    secret = item.secret_esp;
-                    desc = item.desc_esp;
-                }
+        </div>
 
-                // Controllo icona (Rossa per "A casa di Francesca", Blu per il resto)
-                const isFrancesca = title.toLowerCase().includes("a casa di francesca");
-                const markerIcon = isFrancesca ? redIcon : blueIcon;
 
-                // Struttura HTML del Popup con supporto multimediale pulito
-                let popupHTML = `
-                    <div>
-                        ${item.image ? `<img src="${item.image}" alt="${title}">` : ''}
-                        <h3>${title}</h3>
-                        <div class="popup-secret">
-                            <strong>💡 ${currentLang === 'eng' ? 'Secret' : currentLang === 'esp' ? 'Secreto' : 'Il Segreto'}:</strong> ${secret}
-                        </div>
-                        <p>${desc}</p>
-                        
-                        <div class="popup-media">
-                            ${item.audio ? `<audio controls><source src="${item.audio}" type="audio/mpeg">Il tuo browser non supporta l'audio.</audio>` : ''}
-                            ${item.video ? `<video controls><source src="${item.video}" type="video/mp4">Il tuo browser non supporta il video.</video>` : ''}
-                        </div>
-                    </div>
-                `;
+        <!-- =====================================================
+             CONTROLLI DEL CURSORE
+        ====================================================== -->
 
-                let marker = L.marker([item.lat, item.lng], { icon: markerIcon }).bindPopup(popupHTML);
-                markersLayer.addLayer(marker);
-            });
-        }
+        <div id="cursor-controls">
 
-        // 5. Ascoltatore eventi per il cambio lingua in tempo reale
-        document.getElementById('lang-select').addEventListener('change', function(e) {
-            currentLang = e.target.value;
-            renderMarkers();
-        });
+            <button
+                id="start-button"
+                type="button"
+                title="Avvia il percorso"
+            >
+                ▶
+            </button>
 
-        // Caricamento iniziale
-        renderMarkers();
-    </script>
+            <button
+                id="pause-button"
+                type="button"
+                title="Pausa"
+            >
+                ⏸
+            </button>
+
+            <button
+                id="reset-button"
+                type="button"
+                title="Ricominciar percorso"
+            >
+                ↺
+            </button>
+
+        </div>
+
+
+        <!-- =====================================================
+             INDICATORE PERCORSO
+        ====================================================== -->
+
+        <div id="route-status">
+
+            <div id="route-status-title">
+                Virgilio
+            </div>
+
+            <div id="route-status-position">
+                0 / 35
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             SCHEDA MONUMENTO
+        ====================================================== -->
+
+        <div
+            id="monument-panel"
+            class="monument-panel hidden"
+            aria-hidden="true"
+        >
+
+            <button
+                id="close-panel"
+                class="close-panel"
+                type="button"
+                aria-label="Chiudi"
+            >
+                ×
+            </button>
+
+
+            <!-- NOME -->
+            <h2 id="monument-name"></h2>
+
+
+            <!-- CATEGORIA -->
+            <div
+                id="monument-category"
+                class="monument-category"
+            ></div>
+
+
+            <!-- SEGRETO -->
+            <section class="info-section">
+
+                <h3 id="secret-title">
+                    Il Segreto di Virgilio
+                </h3>
+
+                <p id="monument-secret"></p>
+
+            </section>
+
+
+            <!-- SCOPRI DI PIÙ -->
+            <section class="info-section">
+
+                <h3 id="more-title">
+                    Scopri di più
+                </h3>
+
+                <p id="monument-more"></p>
+
+            </section>
+
+
+            <!-- AUDIO -->
+            <section class="media-section">
+
+                <h3 id="audio-title">
+                    Ascolta
+                </h3>
+
+                <div id="audio-container"></div>
+
+            </section>
+
+
+            <!-- VIDEO -->
+            <section
+                id="video-section"
+                class="media-section"
+            >
+
+                <h3 id="video-title">
+                    Guarda il video
+                </h3>
+
+                <div id="video-container"></div>
+
+            </section>
+
+        </div>
+
+
+        <!-- =====================================================
+             MESSAGGIO DI CARICAMENTO
+        ====================================================== -->
+
+        <div id="loading-screen">
+
+            <div class="loading-box">
+
+                <div class="loading-spinner"></div>
+
+                <p id="loading-text">
+                    Caricamento di Virgilio...
+                </p>
+
+            </div>
+
+        </div>
+
+    </main>
+
+
+    <!-- =========================================================
+         LEAFLET JAVASCRIPT
+    ========================================================== -->
+
+    <script
+        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+        crossorigin=""
+    ></script>
+
+
+    <!-- =========================================================
+         JAVASCRIPT DELL'APP
+    ========================================================== -->
+
+    <script src="app.js"></script>
+
 </body>
 </html>
