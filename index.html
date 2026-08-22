@@ -1,21 +1,10 @@
 <!DOCTYPE html>
 <html lang="it">
-
 <head>
-
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <title>Virgilio - Lecce</title>
-
-
-    <!-- =====================================================
-         LEAFLET CSS
-    ====================================================== -->
+    <title>A casa di Francesca - Lecce</title>
 
     <link
         rel="stylesheet"
@@ -23,270 +12,158 @@
         crossorigin=""
     >
 
-
-    <!-- =====================================================
-         CSS DELL'APP
-    ====================================================== -->
-
-    <link
-        rel="stylesheet"
-        href="style.css"
-    >
-
+    <link rel="stylesheet" href="style.css">
 </head>
-
 
 <body>
 
-    <main id="app">
+    <!-- MAPPA -->
+    <div id="map"></div>
 
-
-        <!-- =================================================
-             MAPPA
-        ================================================== -->
-
-        <div id="map"></div>
-
-
-        <!-- =================================================
-             INTESTAZIONE
-        ================================================== -->
-
-        <div id="top-panel">
-
-            <div class="app-title">
-
-                <span class="app-title-main">
-                    VIRGILIO
-                </span>
-
-                <span class="app-title-sub">
-                    Lecce
-                </span>
-
-            </div>
-
-
-            <!-- SELETTORE LINGUA -->
-
-            <div class="language-box">
-
-                <label
-                    for="language-select"
-                    class="sr-only"
-                >
-                    Lingua
-                </label>
-
-                <select id="language-select">
-
-                    <option value="it">
-                        🇮🇹 Italiano
-                    </option>
-
-                    <option value="en">
-                        🇬🇧 English
-                    </option>
-
-                    <option value="es">
-                        🇪🇸 Español
-                    </option>
-
-                </select>
-
-            </div>
-
+    <!-- INTESTAZIONE -->
+    <div id="app-header">
+        <div class="header-title">A casa di Francesca</div>
+        <div class="header-address">
+            Vico Pompeo dei Renzi 4, 73100 - Lecce
         </div>
-
-
-        <!-- =================================================
-             CONTROLLI CURSORE
-        ================================================== -->
-
-        <div id="cursor-controls">
-
-            <button
-                id="start-button"
-                type="button"
-                title="Avvia"
-                aria-label="Avvia percorso"
-            >
-                ▶
-            </button>
-
-            <button
-                id="pause-button"
-                type="button"
-                title="Pausa"
-                aria-label="Metti in pausa"
-            >
-                ⏸
-            </button>
-
-            <button
-                id="reset-button"
-                type="button"
-                title="Ricomincia"
-                aria-label="Ricomincia percorso"
-            >
-                ↺
-            </button>
-
+        <div class="header-phone">
+            +39 338 6116 714
         </div>
+    </div>
 
+    <!-- SELETTORE LINGUA -->
+    <div id="language-selector">
 
-        <!-- =================================================
-             STATO PERCORSO
-        ================================================== -->
+        <button class="language-btn active" data-lang="it">
+            🇮🇹 IT
+        </button>
 
-        <div id="route-status">
+        <button class="language-btn" data-lang="en">
+            🇬🇧 EN
+        </button>
 
-            <div id="route-status-title">
-                Virgilio
-            </div>
+        <button class="language-btn" data-lang="es">
+            🇪🇸 ES
+        </button>
 
-            <div id="route-status-position">
-                1 / 35
-            </div>
+    </div>
 
-        </div>
+    <!-- CONTROLLI AUDIO -->
+    <div id="audio-controls">
 
-
-        <!-- =================================================
-             SCHEDA MONUMENTO
-        ================================================== -->
-
-        <section
-            id="monument-panel"
-            class="monument-panel hidden"
-            aria-hidden="true"
+        <button
+            id="audio-play"
+            class="audio-control"
+            title="Ascolta"
         >
+            ▶
+        </button>
+
+        <button
+            id="audio-pause"
+            class="audio-control"
+            title="Pausa"
+        >
+            ⏸
+        </button>
+
+        <button
+            id="audio-repeat"
+            class="audio-control"
+            title="Ripeti"
+        >
+            ↻
+        </button>
+
+    </div>
+
+    <!-- CURSORE -->
+    <div id="route-cursor"></div>
+
+    <!-- POPUP MONUMENTO -->
+    <div id="place-modal" class="modal hidden">
+
+        <div class="modal-content">
 
             <button
-                id="close-panel"
-                class="close-panel"
-                type="button"
-                aria-label="Chiudi scheda"
+                id="close-modal"
+                class="close-btn"
+                aria-label="Chiudi"
             >
                 ×
             </button>
 
+            <h2 id="place-name"></h2>
 
-            <!-- NOME -->
-
-            <h2 id="monument-name"></h2>
-
-
-            <!-- CATEGORIA -->
-
-            <div
-                id="monument-category"
-                class="monument-category"
-            ></div>
-
-
-            <!-- =================================================
-                 SEGRETO DI VIRGILIO
-            ================================================== -->
-
-            <section class="info-section">
+            <!-- SEGRETO -->
+            <section class="place-section">
 
                 <h3 id="secret-title">
                     Il Segreto di Virgilio
                 </h3>
 
-                <p id="monument-secret"></p>
+                <div
+                    id="place-secret"
+                    class="place-text"
+                ></div>
 
             </section>
 
-
-            <!-- =================================================
-                 SCOPRI DI PIÙ
-            ================================================== -->
-
-            <section class="info-section">
+            <!-- SCOPRI DI PIÙ -->
+            <section class="place-section">
 
                 <h3 id="more-title">
                     Scopri di più
                 </h3>
 
-                <p id="monument-more"></p>
+                <div
+                    id="place-more"
+                    class="place-text"
+                ></div>
 
             </section>
 
-
-            <!-- =================================================
-                 AUDIO
-            ================================================== -->
-
-            <section class="media-section">
+            <!-- AUDIO SINTETIZZATO -->
+            <section
+                id="speech-section"
+                class="place-section"
+            >
 
                 <h3 id="audio-title">
                     Ascolta
                 </h3>
 
-                <div id="audio-container"></div>
-
-            </section>
-
-
-            <!-- =================================================
-                 VIDEO
-            ================================================== -->
-
-            <section
-                id="video-section"
-                class="media-section"
-            >
-
-                <h3 id="video-title">
-                    Guarda il video
-                </h3>
-
-                <div id="video-container"></div>
-
-            </section>
-
-        </section>
-
-
-        <!-- =================================================
-             SCHERMATA CARICAMENTO
-        ================================================== -->
-
-        <div id="loading-screen">
-
-            <div class="loading-box">
-
-                <div class="loading-spinner"></div>
-
-                <p>
-                    Caricamento di Virgilio...
+                <p id="audio-description">
+                    Premi ▶ per ascoltare il testo.
                 </p>
 
-            </div>
+            </section>
+
+            <!-- VIDEO -->
+            <section
+                id="video-section"
+                class="place-section"
+            >
+
+                <button
+                    id="video-btn"
+                    class="video-btn"
+                >
+                    ▶ Guarda il video
+                </button>
+
+            </section>
 
         </div>
 
-    </main>
-
-
-    <!-- =====================================================
-         LEAFLET JAVASCRIPT
-    ====================================================== -->
+    </div>
 
     <script
         src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-        crossorigin=""
-    ></script>
-
-
-    <!-- =====================================================
-         JAVASCRIPT DELL'APP
-    ====================================================== -->
+        crossorigin="">
+    </script>
 
     <script src="app.js"></script>
 
 </body>
-
 </html>
