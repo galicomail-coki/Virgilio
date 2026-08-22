@@ -32,23 +32,20 @@ async function caricaMappa() {
         const luoghi = await response.json();
 
         luoghi.forEach((luogo) => {
-            // Estrazione coordinate
+            // Estrazione coordinate (gestisce sia maiuscole che minuscole)
             const lat = parseFloat(luogo.Lat !== undefined ? luogo.Lat : luogo.lat);
             const lng = parseFloat(luogo.Long !== undefined ? luogo.Long : luogo.long);
 
             if (!isNaN(lat) && !isNaN(lng)) {
-                const nomeLuogo = luogo["Nome Luogo"] || "";
+                // Controllo coordinate precise per il pin rosso (Vico Pompeo dei Renzi 4)
+                // Usiamo un piccolo margine di tolleranza (0.0001) per sicurezza
+                const isCasaFrancesca = (Math.abs(lat - 40.3530) < 0.0001) && (Math.abs(lng - 18.1685) < 0.0001);
                 
-                // Pulizia nome per confronto sicuro (rimuove spazi e rende minuscolo)
-                const nomePulito = nomeLuogo.trim().toLowerCase();
-                
-                // Il pin è rosso se il nome è esattamente "a casa di francesca"
-                const isFrancesca = nomePulito === "a casa di francesca";
-                const markerIcon = isFrancesca ? redIcon : blueIcon;
+                const markerIcon = isCasaFrancesca ? redIcon : blueIcon;
 
                 // Creazione marker
                 const marker = L.marker([lat, lng], { icon: markerIcon }).addTo(map);
-                marker.bindPopup(`<b>${nomeLuogo}</b>`);
+                marker.bindPopup(`<b>${luogo["Nome Luogo"] || "Punto di interesse"}</b>`);
             }
         });
     } catch (e) {
